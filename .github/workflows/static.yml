@@ -53,12 +53,12 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H 167.234.233.215 >> ~/.ssh/known_hosts
+          ssh-keyscan -H ifcee.org >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           echo '#!/bin/sh' > /tmp/askpass.sh
           echo 'echo "$SSH_PASSPHRASE"' >> /tmp/askpass.sh
           chmod +x /tmp/askpass.sh
           SSH_ASKPASS=/tmp/askpass.sh SSH_ASKPASS_REQUIRE=force SSH_PASSPHRASE="${{ secrets.SSH_PASSPHRASE }}" ssh-add ~/.ssh/id_deploy
-          scp -r ./* root@167.234.233.215:/var/www/htdocs/ifscee/
+          scp -r ./* root@ifscee.org:/var/www/htdocs/
           rm -f /tmp/askpass.sh
           ssh-agent -k
