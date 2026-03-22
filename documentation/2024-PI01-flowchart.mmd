@@ -1,0 +1,70 @@
+---
+config:
+  layout: elk
+---
+flowchart TD
+    subgraph Interface["Interface Web"]
+        EDITOR["Editor de Código"]
+        EXEC["Botão Executar"]
+        OUT["Painel de Saída"]
+    end
+    subgraph TIPOTOKENS["Tipos de Tokens"]
+        NUM["Números"]
+        ID["Identificadores"]
+        KEY["Palavras-chave"]
+        OP["Operadores"]
+    end
+    subgraph Lexer["Análise Léxica (Lexer)"]
+        TOK["Tokenização"]
+        TIPOTOKENS
+    end
+    subgraph NODES["Nós da AST"]
+        PROG["Programa"]
+        FUNC["Funções"]
+        STMT["Instruções"]
+        EXPR["Expressões"]
+    end
+    subgraph Parser["Análise Sintática (Parser)"]
+        AST["Construção da AST"]
+        NODES
+    end
+    subgraph Execution["Execução"]
+        SCOPE["Escopo Global"]
+        CALC["Cálculos"]
+        RET["Retornos"]
+    end
+    subgraph Interpreter["Interpretador"]
+        EVAL["Avaliação da AST"]
+        Execution
+    end
+    EDITOR --> EXEC
+    EXEC -- Inicia Análise --> TOK
+    TOK --> NUM & ID & KEY & OP
+    TIPOTOKENS -- Vai ser analisado --> AST
+    AST --> PROG
+    PROG --> FUNC
+    FUNC --> STMT
+    STMT --> EXPR
+    NODES -- Gera Árvore Sintática --> EVAL
+    EVAL --> SCOPE & CALC & RET
+    Execution -- Exibe Resultado --> OUT
+    OUT --> EDITOR
+    EXEC:::process
+    OUT:::process
+    NUM:::data
+    ID:::data
+    KEY:::data
+    OP:::data
+    PROG:::data
+    FUNC:::data
+    STMT:::data
+    EXPR:::data
+    SCOPE:::data
+    CALC:::data
+    RET:::data
+    classDef process fill:#fff,stroke:#333,stroke-width:2px
+    classDef data fill:#f9f9f9,stroke:#666,stroke-width:2px
+    style Interface fill:#f0f7ff,stroke:#4a9eff,stroke-width:2px
+    style Lexer fill:#fff0f0,stroke:#ff4a4a,stroke-width:2px
+    style Parser fill:#f0fff0,stroke:#4aff4a,stroke-width:2px
+    style Interpreter fill:#f7f0ff,stroke:#9b4aff,stroke-width:2px
