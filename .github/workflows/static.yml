@@ -50,10 +50,11 @@ jobs:
       - name: Deploy via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ifscee.org
+          host: 167.234.233.215
           username: root
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "."
-          target: "/var/www/htdocs/"
+          target: "/var/www/htdocs/ifscee/"
           overwrite: true
 
