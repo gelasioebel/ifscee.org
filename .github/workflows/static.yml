@@ -53,7 +53,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H ifcee.org >> ~/.ssh/known_hosts
+          ssh-keyscan -H ifscee.org >> ~/.ssh/known_hosts
           eval $(ssh-agent -s)
           echo '#!/bin/sh' > /tmp/askpass.sh
           echo 'echo "$SSH_PASSPHRASE"' >> /tmp/askpass.sh
