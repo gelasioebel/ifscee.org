@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSCee - Interpretador Visual de C</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>IFSCee: Visualizador de Código C</h1>
+    <div class="controls">
+        <button id="btn-prepare" title="Atalho: Ctrl + Enter">Preparar Execução</button>
+        <button id="btn-edit" style="display: none;" title="Atalho: Esc">Voltar para Edição</button>
+        <span class="divider">|</span>
+        <button id="btn-first" disabled title="Atalho: Home">&lt;&lt; Primeiro</button>
+        <button id="btn-prev" disabled title="Atalho: Seta Esquerda (←)">&lt; Anterior</button>
+        <button id="btn-play" disabled title="Atalho: Espaço">▶ Play</button>
+        <button id="btn-next" disabled title="Atalho: Seta Direita (→)">Próximo &gt;</button>
+        <button id="btn-last" disabled title="Atalho: End">Último &gt;&gt;</button>
+        <span class="divider">|</span>
+        <label for="speed-control" style="font-size: 0.9em;">Velocidade:</label>
+        <input type="range" id="speed-control" min="1" max="10" value="5" disabled title="Ajustar velocidade de execução automática">
+        <span id="speed-display" style="font-size: 0.9em; min-width: 30px;">5x</span>
+        <span class="divider">|</span>
+        <button id="btn-toggle-ast" style="display: none;" title="Mostrar/Ocultar AST">🌳 AST</button>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="panel code-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 style="margin: 0;">Código Fonte</h3>
+            <div>
+                <select id="examples-dropdown" style="padding: 4px 12px; font-size: 0.85em; margin-right: 5px;" title="Carregar exemplo">
+                    <option value="">📚 Carregar Exemplo...</option>
+                    <optgroup label="Básicos">
+                        <option value="basic-1">1. Hello World</option>
+                        <option value="basic-2">2. Variáveis e Tipos</option>
+                        <option value="basic-3">3. Operações Aritméticas</option>
+                        <option value="basic-4">4. If-Else</option>
+                        <option value="basic-5">5. For Loop</option>
+                        <option value="basic-6">6. While Loop</option>
+                        <option value="basic-7">7. Arrays</option>
+                        <option value="basic-8">8. Funções</option>
+                        <option value="basic-9">9. Ponteiros</option>
+                        <option value="basic-10">10. Malloc</option>
+                    </optgroup>
+                    <optgroup label="Escape Sequences (C99)">
+                        <option value="escape-1">1. Basic Escapes (\n, \t, \\, \")</option>
+                        <option value="escape-2">2. Character Literals</option>
+                        <option value="escape-3">3. All Standard Escapes</option>
+                        <option value="escape-4">4. Octal Escapes (\77, \012)</option>
+                        <option value="escape-5">5. Hex Escapes (\x41, \xFF)</option>
+                        <option value="escape-6">6. Mixed Escapes</option>
+                        <option value="escape-7">7. Numeric Bases (Oct/Hex/Bin)</option>
+                        <option value="escape-8">8. Float Formats</option>
+                        <option value="escape-9">9. Integer Suffixes (u/L/LL)</option>
+                        <option value="escape-10">10. Wide Char/String (L)</option>
+                    </optgroup>
+                </select>
+                <button id="btn-export-ast" style="display: none; padding: 4px 12px; font-size: 0.85em;" title="Exportar AST como JSON">📥 Export AST</button>
+            </div>
+        </div>
+        <div class="code-container">
+                <textarea id="code-editor" spellcheck="false">
+#include <stdio.h>
+#define PI 3.14
+
+int main() {
+    int matriz[2][3];
+    matriz[0][0] = 10;
+    matriz[1][2] = 99;
+
+    float circulo = PI;
+    printf("Teste Completo!");
+
+    return 0;
+}
+                </textarea>
+            <div id="code-execution-view" style="display: none;"></div>
+        </div>
+    </div>
+
+    <div class="panel-group">
+        <div class="panel ast-panel" id="ast-panel" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">Abstract Syntax Tree (AST)</h3>
+                <div>
+                    <button id="btn-expand-all" style="padding: 4px 12px; font-size: 0.85em; margin-right: 5px;">Expandir Tudo</button>
+                    <button id="btn-collapse-all" style="padding: 4px 12px; font-size: 0.85em;">Colapsar Tudo</button>
+                </div>
+            </div>
+            <div id="ast-visualizer" class="ast-container">
+                <p class="empty-msg">A AST será exibida após preparar a execução</p>
+            </div>
+        </div>
+
+        <div class="panel memory-panel">
+            <h3>Estado da Memória RAM (Stack, Heap, Data)</h3>
+            <div id="memory-visualizer" class="memory-container">
+                <p class="empty-msg">Aguardando execução...</p>
+            </div>
+        </div>
+
+        <div class="panel watch-panel">
+            <h3>Variáveis Observadas</h3>
+            <div id="watch-panel" class="watch-container">
+                <p class="empty-msg">Clique direito em uma variável para observá-la</p>
+            </div>
+        </div>
+
+        <div class="panel output-panel">
+            <h3>Saída do Programa (Terminal)</h3>
+            <div id="output-panel" class="terminal-output"></div>
+        </div>
+    </div>
+</div>
+
+<script src="preprocessor.js"></script>
+<script src="lexer.js"></script>
+<script src="parser.js"></script>
+<script src="interpreter.js"></script>
+<script src="ui-controller.js"></script>
+</body>
+</html>

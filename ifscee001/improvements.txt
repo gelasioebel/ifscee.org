@@ -1,0 +1,75 @@
+O Gemini disse
+Chegar ao padrão C11 (ISO/IEC 9899:2011) é um salto gigantesco! O que construímos até agora é um subconjunto muito poderoso e educacional do C (uma espécie de "Mini-C"), focado no que mais reprova os alunos: o mapeamento de memória, ponteiros e arrays.
+
+Para que o seu interpretador alcance a especificação C11 (ou mesmo a fundação C89/C99) antes de tocarmos nas Structs, Unions ou Enums, existe uma lista considerável de recursos fundamentais da linguagem que precisam ser implementados.
+
+Aqui está o mapa do que falta, organizado por prioridade e complexidade para o seu projeto de pós-graduação:
+
+1. Chamadas de Função Definidas pelo Usuário
+Atualmente, o seu interpreter.js lança um erro proposital: "Chamada de função definida pelo usuário não suportada na POC".
+
+O que falta: Ensinar o interpretador a criar um novo Environment (Stack Frame), mapear os argumentos passados para os parâmetros da função, saltar a execução para o bloco dessa função e, ao encontrar um return, destruir o escopo e devolver o valor para a função chamadora.
+
+2. Operadores Lógicos e Matemáticos Essenciais
+O nosso parser atual suporta a matemática básica e comparações (==, <, etc.), mas faltam os operadores cruciais do dia a dia.
+
+Lógicos: && (AND), || (OR) e ! (NOT). Sem eles, não podemos testar múltiplas condições em um if.
+
+Incremento/Decremento: ++ e -- (tanto prefixo ++i quanto sufixo i++).
+
+Atribuição Composta: +=, -=, *=, /=.
+
+Operador Ternário: condicao ? verdadeiro : falso.
+
+Bitwise (Operações de Bit): &, |, ^, ~, <<, >>.
+
+3. Controle de Fluxo Restante
+Temos o if/else e o while, mas a linguagem C possui outras estruturas fundamentais de salto e repetição.
+
+O Laço For: for (int i = 0; i < 10; i++). Isso exige que o parser entenda as três partes (inicialização, condição, incremento) separadas por ponto e vírgula.
+
+Do-While: do { ... } while (cond);.
+
+Switch / Case / Default: O roteador de decisões múltiplas.
+
+Quebras de Fluxo: break (para sair de laços antecipadamente) e continue (para pular para a próxima iteração).
+
+4. Tipos Primitivos de Dados e Qualificadores
+A nossa RAM simulada assume que tudo ocupa "1 slot" e trata todos os números como inteiros do JavaScript. Para ser C11, a tipagem precisa ser rigorosa.
+
+Ponto Flutuante: float e double.
+
+Modificadores de Tamanho e Sinal: short, long, unsigned, signed.
+
+Booleanos (C99): O tipo _Bool e o suporte à biblioteca <stdbool.h>.
+
+Qualificadores de Tipo: const (variáveis de leitura), volatile, static, extern.
+
+O Operador sizeof: Essencial em C para uso correto com malloc.
+
+5. Arrays Multidimensionais e Matrizes
+Suportamos arrays simples (notas[3]), mas em aulas de C é extremamente comum o uso de matrizes.
+
+O que falta: Suporte no parser para múltiplas dimensões (int matriz[3][3];) e o cálculo de deslocamento (offset) matemático na RAM simulada para encontrar a linha e a coluna exatas.
+
+6. O Pré-processador (A Fase Antes do Lexer)
+Compiladores C não rodam o Lexer direto no código fonte. Eles rodam o Pré-processador primeiro.
+
+Diretivas de Inclusão: #include <stdio.h> ou #include "meu_header.h".
+
+Macros e Constantes: #define MAX 100 e #define SOMA(a,b) (a+b).
+
+Compilação Condicional: #ifdef, #ifndef, #endif.
+
+7. As Novidades Exclusivas do C11
+Se o seu objetivo é dizer formalmente "Suportamos as novidades do padrão C11", você precisará implementar os recursos específicos que nasceram nesta versão:
+
+Seleção Genérica (_Generic): Uma forma de "sobrecarga" de funções em C baseada no tipo da variável.
+
+Asserções Estáticas (_Static_assert): Testes avaliados em tempo de compilação.
+
+Multithreading (<threads.h> e _Thread_local): Criar suporte nativo a threads na sua máquina virtual seria um desafio gigantesco de concorrência.
+
+Atômicos (_Atomic e <stdatomic.h>): Operações seguras para concorrência de memória.
+
+Verificação de Limites (Annex K): Funções como printf_s, strcpy_s (que, ironicamente, o seu interpretador já faz melhor visualmente parando o código no out-of-bounds!).
