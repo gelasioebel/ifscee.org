@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSCee v3 - 0% OOP MVP</title>
+    <style>
+        :root {
+            --bg-escuro: #1e1e1e;
+            --bg-editor: #2d2d30;
+            --cor-texto: #d4d4d4;
+            --cor-verde: #006837;
+            --cor-verde-hover: #00552e;
+            --fonte-mono: 'Consolas', 'Courier New', monospace;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-escuro);
+            color: var(--cor-texto);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        h1 {
+            font-size: 20px;
+            margin-top: 0;
+            color: #4caf50;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex: 1;
+        }
+        textarea {
+            width: 100%;
+            flex: 1;
+            background-color: var(--bg-editor);
+            color: #9cdcfe;
+            font-family: var(--fonte-mono);
+            font-size: 16px;
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .controles {
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            background-color: var(--cor-verde);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: var(--cor-verde-hover);
+        }
+        .terminal {
+            height: 150px;
+            background-color: #000;
+            color: #0f0;
+            font-family: var(--fonte-mono);
+            font-size: 14px;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>IFSCee MVP (Motor Estruturado C)</h1>
+
+<div class="container">
+        <textarea id="editor" spellcheck="false">
+int fib(int n) {
+    if (n < 2) return n;
+    return fib(n-1) + fib(n-2);
+}
+
+int main() {
+    return fib(10);
+}
+</textarea>
+
+    <div class="controles">
+        <button onclick="iniciar_execucao()">▶ Executar</button>
+    </div>
+
+    <div class="terminal" id="saida">Pronto para executar...</div>
+</div>
+
+<script>
+    // ==========================================================
+    // 1. MEMÓRIA GLOBAL E ESTRUTURAS DE DADOS (VETORES PARALELOS)
+    // ==========================================================
+
+    // --- Lexer (Tokens) ---
+    let tok_tipo = [];
+    let tok_str = [];
+    let tok_num = [];
+    let tok_qtd = 0;
+    let tok_pos = 0;
+
+    const T_INT=1, T_ID=2, T_NUM=3, T_IF=4, T_RET=5, T_LPAR=6, T_RPAR=7;
+    const T_LBR=8, T_RBR=9, T_PLUS=10, T_MINUS=11, T_LT=12, T_COMMA=13, T_SEMI=14, T_EOF=0;
+
+    // --- Parser (Flat AST) ---
+    let ast_tipo = [];
+    let ast_v1 = [];
+    let ast_v2 = [];
+    let ast_v3 = [];
+    let ast_qtd = 0;
+
+    const N_PROG=1, N_FUNC=2, N_PARAM=3, N_BLOCK=4, N_STMT_LIST=5, N_IF=6;
+    const N_RET=7, N_BINOP=8, N_CALL=9, N_ARG_LIST=10, N_VAR=11, N_NUM=12;
+
+    // --- Interpretador (Call Stack e Variáveis) ---
+    let var_nome = [];
+    let var_val = [];
+    let var_qtd = 0;
+
+    let frame_base = [];
+    let frame_qtd = 0;
+
+    let tmp_val = [];
+    let tmp_qtd = 0;
+
+    let flg_retorno = 0;
+    let val_retorno = 0;
+
+
+    // ==========================================================
+    // 2. ROTINAS DE RESET E LOG
+    // ==========================================================
+
+    function reset_memoria() {
+        tok_qtd = 0;
+        tok_pos = 0;
+        ast_qtd = 0;
+        var_qtd = 0;
+        frame_qtd = 0;
+        tmp_qtd = 0;
+        flg_retorno = 0;
+        val_retorno = 0;
+        document.getElementById('saida').innerText = "";
+    }
+
+    function imprimir_saida(msg) {
+        document.getElementById('saida').innerText += msg + "\n";
+    }
+
+
+    // ==========================================================
+    // 3. ROTINAS DO LEXER (String -> Tokens)
+    // ==========================================================
+
+    function adicionar_token(tipo, s, n) {
+        tok_tipo[tok_qtd] = tipo;
+        tok_str[tok_qtd] = s;
+        tok_num[tok_qtd] = n;
+        tok_qtd++;
+    }
+
+    function tokenizar(codigo_puro) {
+        // Terminador nulo para abolir o ".length" OO do JS
+        let codigo = codigo_puro + '\0';
+        let pos = 0;
+
+        while (codigo[pos] !== '\0') {
+            let c = codigo[pos];
+
+            if (c === ' ' || c === '\n' || c === '\r' || c === '\t') {
+                pos++;
+                continue;
+            }
+
+            if (c === '(') { adicionar_token(T_LPAR, "(", 0); pos++; continue; }
+            if (c === ')') { adicionar_token(T_RPAR, ")", 0); pos++; continue; }
+            if (c === '{') { adicionar_token(T_LBR, "{", 0); pos++; continue; }
+            if (c === '}') { adicionar_token(T_RBR, "}", 0); pos++; continue; }
+            if (c === '+') { adicionar_token(T_PLUS, "+", 0); pos++; continue; }
+            if (c === '-') { adicionar_token(T_MINUS, "-", 0); pos++; continue; }
+            if (c === '<') { adicionar_token(T_LT, "<", 0); pos++; continue; }
+            if (c === ',') { adicionar_token(T_COMMA, ",", 0); pos++; continue; }
+            if (c === ';') { adicionar_token(T_SEMI, ";", 0); pos++; continue; }
+
+            // Extração procedural de números
+            if (c >= '0' && c <= '9') {
+                let num_str = "";
+                while (codigo[pos] >= '0' && codigo[pos] <= '9') {
+                    num_str += codigo[pos];
+                    pos++;
+                }
+                // ParseInt puro
+                adicionar_token(T_NUM, "", parseInt(num_str, 10));
+                continue;
+            }
+
+            // Extração procedural de Identificadores e Palavras Reservadas
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+                let id_str = "";
+                while ((codigo[pos] >= 'a' && codigo[pos] <= 'z') ||
+                (codigo[pos] >= 'A' && codigo[pos] <= 'Z') ||
+                (codigo[pos] >= '0' && codigo[pos] <= '9')) {
+                    id_str += codigo[pos];
+                    pos++;
+                }
+
+                if (id_str === "int") adicionar_token(T_INT, id_str, 0);
+                else if (id_str === "if") adicionar_token(T_IF, id_str, 0);
+                else if (id_str === "return") adicionar_token(T_RET, id_str, 0);
+                else adicionar_token(T_ID, id_str, 0);
+                continue;
+            }
+
+            pos++;
+        }
+        adicionar_token(T_EOF, "", 0);
+    }
+
+
+    // ==========================================================
+    // 4. ROTINAS DO PARSER (Tokens -> Flat AST)
+    // ==========================================================
+
+    function alocar_no(tipo, v1, v2, v3) {
+        let ptr = ast_qtd;
+        ast_tipo[ptr] = tipo;
+        ast_v1[ptr] = v1;
+        ast_v2[ptr] = v2;
+        ast_v3[ptr] = v3;
+        ast_qtd++;
+        return ptr;
+    }
+
+    function parse_fator() {
+        let t = tok_tipo[tok_pos];
+
+        if (t === T_NUM) {
+            let ptr = alocar_no(N_NUM, tok_num[tok_pos], -1, -1);
+            tok_pos++;
+            return ptr;
+        }
+
+        if (t === T_ID) {
+            let nome = tok_str[tok_pos];
+            tok_pos++;
+
+            if (tok_tipo[tok_pos] === T_LPAR) {
+                tok_pos++;
+                let args_ptr = -1;
+                let ult_arg = -1;
+
+                if (tok_tipo[tok_pos] !== T_RPAR) {
+                    args_ptr = alocar_no(N_ARG_LIST, "", parse_expr(), -1);
+                    ult_arg = args_ptr;
+
+                    while (tok_tipo[tok_pos] === T_COMMA) {
+                        tok_pos++;
+                        let novo_arg = alocar_no(N_ARG_LIST, "", parse_expr(), -1);
+                        ast_v3[ult_arg] = novo_arg;
+                        ult_arg = novo_arg;
+                    }
+                }
+                tok_pos++;
+                return alocar_no(N_CALL, nome, args_ptr, -1);
+            }
+
+            return alocar_no(N_VAR, nome, -1, -1);
+        }
+        return -1;
+    }
+
+    function parse_soma() {
+        let esq = parse_fator();
+        while (tok_tipo[tok_pos] === T_PLUS || tok_tipo[tok_pos] === T_MINUS) {
+            let op = tok_str[tok_pos];
+            tok_pos++;
+            let dir = parse_fator();
+            esq = alocar_no(N_BINOP, op, esq, dir);
+        }
+        return esq;
+    }
+
+    function parse_expr() {
+        let esq = parse_soma();
+        if (tok_tipo[tok_pos] === T_LT) {
+            let op = tok_str[tok_pos];
+            tok_pos++;
+            let dir = parse_soma();
+            esq = alocar_no(N_BINOP, op, esq, dir);
+        }
+        return esq;
+    }
+
+    function parse_stmt() {
+        if (tok_tipo[tok_pos] === T_IF) {
+            tok_pos++; tok_pos++;
+            let cond = parse_expr();
+            tok_pos++;
+            let corpo = parse_stmt();
+            return alocar_no(N_IF, "", cond, corpo);
+        }
+
+        if (tok_tipo[tok_pos] === T_RET) {
+            tok_pos++;
+            let expr = parse_expr();
+            tok_pos++;
+            return alocar_no(N_RET, "", expr, -1);
+        }
+
+        return -1;
+    }
+
+    function parse_bloco() {
+        tok_pos++;
+        let lista_stmts = -1;
+        let ult_stmt = -1;
+
+        while (tok_tipo[tok_pos] !== T_RBR && tok_tipo[tok_pos] !== T_EOF) {
+            let s_ptr = parse_stmt();
+            let list_no = alocar_no(N_STMT_LIST, "", s_ptr, -1);
+
+            if (lista_stmts === -1) {
+                lista_stmts = list_no;
+            } else {
+                ast_v3[ult_stmt] = list_no;
+            }
+            ult_stmt = list_no;
+        }
+        tok_pos++;
+        return alocar_no(N_BLOCK, "", lista_stmts, -1);
+    }
+
+    function parse_func() {
+        tok_pos++;
+        let nome = tok_str[tok_pos];
+        tok_pos++; tok_pos++;
+
+        let params_ptr = -1;
+        let ult_param = -1;
+
+        if (tok_tipo[tok_pos] === T_INT) {
+            tok_pos++;
+            let p_nome = tok_str[tok_pos];
+            tok_pos++;
+
+            params_ptr = alocar_no(N_PARAM, p_nome, -1, -1);
+            ult_param = params_ptr;
+
+            while (tok_tipo[tok_pos] === T_COMMA) {
+                tok_pos++; tok_pos++;
+                let n_nome = tok_str[tok_pos];
+                tok_pos++;
+
+                let novo_p = alocar_no(N_PARAM, n_nome, -1, -1);
+                ast_v3[ult_param] = novo_p;
+                ult_param = novo_p;
+            }
+        }
+        tok_pos++;
+
+        let bloco_ptr = parse_bloco();
+        return alocar_no(N_FUNC, nome, params_ptr, bloco_ptr);
+    }
+
+    function construir_ast() {
+        let prog_ptr = alocar_no(N_PROG, -1, -1, -1);
+        let ult_func = -1;
+
+        while (tok_tipo[tok_pos] !== T_EOF) {
+            let f_ptr = parse_func();
+            if (ast_v1[prog_ptr] === -1) {
+                ast_v1[prog_ptr] = f_ptr;
+            } else {
+                ast_v3[ult_func] = f_ptr;
+            }
+            ult_func = f_ptr;
+        }
+        return prog_ptr;
+    }
+
+
+    // ==========================================================
+    // 5. ROTINAS DO INTERPRETADOR
+    // ==========================================================
+
+    function achar_funcao_ast(nome_buscado) {
+        for (let i = 0; i < ast_qtd; i++) {
+            if (ast_tipo[i] === N_FUNC && ast_v1[i] === nome_buscado) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    function eval_expr(ptr) {
+        if (ptr === -1) return 0;
+        let t = ast_tipo[ptr];
+
+        if (t === N_NUM) {
+            return ast_v1[ptr];
+        }
+
+        if (t === N_VAR) {
+            let base = frame_base[frame_qtd - 1];
+            for (let i = var_qtd - 1; i >= base; i--) {
+                if (var_nome[i] === ast_v1[ptr]) {
+                    return var_val[i];
+                }
+            }
+            return 0;
+        }
+
+        if (t === N_BINOP) {
+            let op = ast_v1[ptr];
+            let esq = eval_expr(ast_v2[ptr]);
+            let dir = eval_expr(ast_v3[ptr]);
+            if (op === '+') return esq + dir;
+            if (op === '-') return esq - dir;
+            if (op === '<') return (esq < dir) ? 1 : 0;
+        }
+
+        if (t === N_CALL) {
+            let func_nome = ast_v1[ptr];
+            let args_ptr = ast_v2[ptr];
+
+            let tmp_inicio = tmp_qtd;
+            while (args_ptr !== -1) {
+                tmp_val[tmp_qtd] = eval_expr(ast_v2[args_ptr]);
+                tmp_qtd++;
+                args_ptr = ast_v3[args_ptr];
+            }
+
+            let f_ptr = achar_funcao_ast(func_nome);
+
+            frame_base[frame_qtd] = var_qtd;
+            frame_qtd++;
+
+            let param_ptr = ast_v2[f_ptr];
+            let arg_idx = tmp_inicio;
+            while (param_ptr !== -1) {
+                var_nome[var_qtd] = ast_v1[param_ptr];
+                var_val[var_qtd] = tmp_val[arg_idx];
+                var_qtd++;
+                param_ptr = ast_v3[param_ptr];
+                arg_idx++;
+            }
+            tmp_qtd = tmp_inicio;
+
+            let backup_flg = flg_retorno;
+            flg_retorno = 0;
+
+            exec_stmt(ast_v3[f_ptr]);
+            let retorno = val_retorno;
+
+            flg_retorno = backup_flg;
+
+            frame_qtd--;
+            var_qtd = frame_base[frame_qtd];
+
+            return retorno;
+        }
+        return 0;
+    }
+
+    function exec_stmt(ptr) {
+        if (ptr === -1 || flg_retorno === 1) return;
+        let t = ast_tipo[ptr];
+
+        if (t === N_BLOCK) {
+            let st_list = ast_v1[ptr];
+            while (st_list !== -1 && flg_retorno === 0) {
+                exec_stmt(ast_v2[st_list]);
+                st_list = ast_v3[st_list];
+            }
+        }
+        else if (t === N_IF) {
+            let cond = eval_expr(ast_v1[ptr]);
+            if (cond !== 0) {
+                exec_stmt(ast_v2[ptr]);
+            }
+        }
+        else if (t === N_RET) {
+            val_retorno = eval_expr(ast_v1[ptr]);
+            flg_retorno = 1;
+        }
+    }
+
+
+    // ==========================================================
+    // 6. UI & PIPELINE DE EXECUÇÃO
+    // ==========================================================
+
+    function iniciar_execucao() {
+        let codigo_c = document.getElementById('editor').value;
+        reset_memoria();
+
+        try {
+            let t0 = performance.now();
+
+            imprimir_saida("[SISTEMA] Tokenizando...");
+            tokenizar(codigo_c);
+
+            imprimir_saida("[SISTEMA] Construindo AST (Flat Arrays)...");
+            construir_ast();
+
+            imprimir_saida("[SISTEMA] Executando main()...");
+
+            // Setup Call Stack inicial para o SO
+            frame_base[frame_qtd] = var_qtd;
+            frame_qtd++;
+
+            let main_ptr = achar_funcao_ast("main");
+
+            if (main_ptr === -1) {
+                imprimir_saida("ERRO: Função main() não encontrada.");
+                return;
+            }
+
+            exec_stmt(ast_v3[main_ptr]);
+
+            let t1 = performance.now();
+            let tempo_ms = (t1 - t0).toFixed(2);
+
+            imprimir_saida("\n[SISTEMA] Programa finalizou com código: " + val_retorno);
+            imprimir_saida("[SISTEMA] Tempo de execução: " + tempo_ms + " ms");
+            imprimir_saida("[SISTEMA] Uso de memória simulada (Nós na AST): " + ast_qtd);
+
+        } catch (e) {
+            imprimir_saida("\nFATAL ERROR: " + e.message);
+        }
+    }
+</script>
+</body>
+</html>
