@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Teste de assinatura de commits via SSH">
+  <title>Teste de Assinatura SSH</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      /* Cores institucionais — Manual da Marca IFSC 2017, p.16 */
+      --verdeIfsc: rgb(50, 160, 65);
+      --vermelhoIfsc: rgb(200, 25, 30);
+      --pretoIfsc: rgb(0, 0, 0);
+
+      /* Escala de cinza — Manual da Marca IFSC 2017, p.17 */
+      --cinzaIfsc: rgb(147, 149, 152);
+
+      /* Auxiliares */
+      --brancoIfsc: #FFFFFF;
+      --fundoIfsc: #F0F0F0;
+    }
+
+    body {
+      font-family: 'Open Sans', system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: var(--fundoIfsc);
+      color: var(--pretoIfsc);
+    }
+
+    header {
+      background-color: var(--verdeIfsc);
+      padding: 1rem 2rem;
+      border-bottom: 4px solid var(--vermelhoIfsc);
+    }
+
+    header span {
+      color: var(--brancoIfsc);
+      font-size: 0.875rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--verdeIfsc);
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--verdeIfsc);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      width: 100%;
+    }
+
+    /* ── Cards de Cores ── */
+    .coresContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.25rem;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    .corCard {
+      flex: 1 1 200px;
+      max-width: 240px;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: var(--brancoIfsc);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .corAmostra {
+      height: 100px;
+    }
+
+    .corInfo {
+      padding: 0.875rem;
+    }
+
+    .corNome {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .corDescricao {
+      font-size: 0.75rem;
+      color: var(--cinzaIfsc);
+      margin-bottom: 0.625rem;
+      line-height: 1.4;
+    }
+
+    .corValores {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.7rem;
+      font-family: 'Courier New', monospace;
+      color: #555;
+    }
+
+    /* ── Cards de Fontes ── */
+    .fontesContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.25rem;
+      max-width: 960px;
+      width: 100%;
+    }
+
+    .fonteCard {
+      flex: 1 1 280px;
+      max-width: 460px;
+      border-radius: 8px;
+      overflow: hidden;
+      background-color: var(--brancoIfsc);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .fonteHeader {
+      padding: 1rem;
+      background-color: var(--verdeIfsc);
+      color: var(--brancoIfsc);
+    }
+
+    .fonteHeader .fonteNome {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .fonteHeader .fonteUso {
+      font-size: 0.7rem;
+      opacity: 0.85;
+      margin-top: 0.2rem;
+    }
+
+    .fonteBody {
+      padding: 1rem;
+    }
+
+    .fonteAmostra {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: var(--pretoIfsc);
+      margin-bottom: 0.75rem;
+      word-break: break-all;
+    }
+
+    .fonteGrafia {
+      font-size: 0.75rem;
+      color: var(--cinzaIfsc);
+      line-height: 1.5;
+      border-top: 1px solid var(--fundoIfsc);
+      padding-top: 0.75rem;
+    }
+
+    .fonteGrafia span {
+      display: block;
+    }
+
+    footer {
+      background-color: var(--verdeIfsc);
+      color: var(--brancoIfsc);
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <span>IFSC — Câmpus Gaspar</span>
+</header>
+<main>
+  <h1>Teste de Assinatura de Commits via SSH</h1>
+
+  <!-- Cores Institucionais -->
+  <section>
+    <h2>Cores Institucionais</h2>
+    <div class="coresContainer">
+      <div class="corCard">
+        <div class="corAmostra" style="background-color: var(--verdeIfsc);"></div>
+        <div class="corInfo">
+          <div class="corNome">Verde IFSC</div>
+          <div class="corDescricao">Cor institucional primária. Presente no símbolo gráfico (nove quadrados) e no logotipo.</div>
+          <div class="corValores">
+            <span>Pantone 362C</span>
+            <span>CMYK 75 / 0 / 100 / 0</span>
+            <span>RGB 50 / 160 / 65</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="corCard">
+        <div class="corAmostra" style="background-color: var(--vermelhoIfsc);"></div>
+        <div class="corInfo">
+          <div class="corNome">Vermelho IFSC</div>
+          <div class="corDescricao">Cor institucional de destaque. Presente no círculo do símbolo gráfico.</div>
+          <div class="corValores">
+            <span>Pantone 187C</span>
+            <span>CMYK 0 / 100 / 100 / 15</span>
+            <span>RGB 200 / 25 / 30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="corCard">
+        <div class="corAmostra" style="background-color: var(--pretoIfsc);"></div>
+        <div class="corInfo">
+          <div class="corNome">Preto</div>
+          <div class="corDescricao">Cor institucional de apoio. Utilizada no texto "INSTITUTO FEDERAL" do logotipo.</div>
+          <div class="corValores">
+            <span>Process Black C</span>
+            <span>CMYK 0 / 0 / 0 / 100</span>
+            <span>RGB 0 / 0 / 0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="corCard">
+        <div class="corAmostra" style="background-color: var(--cinzaIfsc);"></div>
+        <div class="corInfo">
+          <div class="corNome">Cinza 50%</div>
+          <div class="corDescricao">Escala de cinza. Substitui o verde em impressões monocromáticas (p.17).</div>
+          <div class="corValores">
+            <span>Preto 50%</span>
+            <span>CMYK 0 / 0 / 0 / 50</span>
+            <span>RGB 147 / 149 / 152</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Família Tipográfica -->
+  <section>
+    <h2>Família Tipográfica</h2>
+    <div class="fontesContainer">
+      <div class="fonteCard">
+        <div class="fonteHeader">
+          <div class="fonteNome">Open Sans Bold</div>
+          <div class="fonteUso">Logotipo — nome da instituição, toda em caixa alta</div>
+        </div>
+        <div class="fonteBody">
+          <div class="fonteAmostra" style="font-weight: 700; text-transform: uppercase;">
+            INSTITUTO FEDERAL
+          </div>
+          <div class="fonteAmostra" style="font-weight: 700;">
+            abcdefghijklmnopqrstuvwxyz<br>
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+            1234567890.;,; ' " (!?) +-*/=
+          </div>
+          <div class="fonteGrafia">
+            <span>Uso: nome da instituição e sigla</span>
+            <span>Grafia: toda em caixa alta</span>
+            <span>Exemplo: INSTITUTO FEDERAL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fonteCard">
+        <div class="fonteHeader">
+          <div class="fonteNome">Open Sans Regular</div>
+          <div class="fonteUso">Logotipo — nome do estado e câmpus, iniciais em caixa alta</div>
+        </div>
+        <div class="fonteBody">
+          <div class="fonteAmostra" style="font-weight: 400;">
+            Santa Catarina<br>
+            Câmpus Gaspar
+          </div>
+          <div class="fonteAmostra" style="font-weight: 400;">
+            abcdefghijklmnopqrstuvwxyz<br>
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>
+            1234567890.;,; ' " (!?) +-*/=
+          </div>
+          <div class="fonteGrafia">
+            <span>Uso: nome do estado, câmpus e textos complementares</span>
+            <span>Grafia: somente iniciais em caixa alta</span>
+            <span>Exemplo: Santa Catarina / Câmpus Gaspar</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer>
+  Instituto Federal de Santa Catarina
+</footer>
+</body>
+</html>

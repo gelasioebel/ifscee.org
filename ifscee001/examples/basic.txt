@@ -1,0 +1,204 @@
+// BASIC C CONCEPTS - 10 Examples
+// Each example demonstrates fundamental C programming concepts
+// Uncomment one example at a time to test
+
+// =============================================================================
+// EXAMPLE 1: Hello World
+// Demonstrates: printf, string literals
+// =============================================================================
+#include <stdio.h>
+
+int main() {
+    printf("Hello, World!");
+    return 0;
+}
+
+// =============================================================================
+// EXAMPLE 2: Variable Declaration and Initialization
+// Demonstrates: int, float, char types
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int age = 25;
+    float height = 1.75;
+    char grade = 'A';
+
+    printf("Age: %d", age);
+    printf("Height: %d", (int)(height * 100));
+    printf("Grade: %c", grade);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 3: Arithmetic Operations
+// Demonstrates: +, -, *, /, % operators
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int a = 10;
+    int b = 3;
+
+    printf("Addition: %d", a + b);
+    printf("Subtraction: %d", a - b);
+    printf("Multiplication: %d", a * b);
+    printf("Division: %d", a / b);
+    printf("Modulo: %d", a % b);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 4: If-Else Statements
+// Demonstrates: conditional branching
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int score = 85;
+
+    if (score >= 90) {
+        printf("Grade: A");
+    } else if (score >= 80) {
+        printf("Grade: B");
+    } else if (score >= 70) {
+        printf("Grade: C");
+    } else {
+        printf("Grade: F");
+    }
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 5: For Loop
+// Demonstrates: for loop, iteration
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int i;
+    int sum = 0;
+
+    for (i = 1; i <= 5; i = i + 1) {
+        sum = sum + i;
+        printf("i=%d, sum=%d", i, sum);
+    }
+    printf("Final sum: %d", sum);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 6: While Loop
+// Demonstrates: while loop, countdown
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int countdown = 5;
+
+    while (countdown > 0) {
+        printf("Countdown: %d", countdown);
+        countdown = countdown - 1;
+    }
+    printf("Liftoff!");
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 7: Arrays
+// Demonstrates: array declaration, indexing
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int numbers[5];
+    int i;
+
+    numbers[0] = 10;
+    numbers[1] = 20;
+    numbers[2] = 30;
+    numbers[3] = 40;
+    numbers[4] = 50;
+
+    for (i = 0; i < 5; i = i + 1) {
+        printf("numbers[%d] = %d", i, numbers[i]);
+    }
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 8: Functions
+// Demonstrates: function definition, calling, return values
+// =============================================================================
+/*
+#include <stdio.h>
+
+int square(int x) {
+    return x * x;
+}
+
+int main() {
+    int num = 7;
+    int result = square(num);
+
+    printf("Square of %d is %d", num, result);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 9: Pointers
+// Demonstrates: pointer declaration, dereferencing, address-of operator
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int value = 42;
+    int *ptr = &value;
+
+    printf("Value: %d", value);
+    printf("Address: %d", (int)ptr);
+    printf("Dereferenced: %d", *ptr);
+
+    *ptr = 100;
+    printf("New value: %d", value);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 10: Dynamic Memory Allocation
+// Demonstrates: malloc, pointer usage
+// =============================================================================
+/*
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int *arr = (int*)malloc(3 * sizeof(int));
+
+    arr[0] = 5;
+    arr[1] = 10;
+    arr[2] = 15;
+
+    printf("arr[0] = %d", arr[0]);
+    printf("arr[1] = %d", arr[1]);
+    printf("arr[2] = %d", arr[2]);
+
+    free(arr);
+    return 0;
+}
+*/

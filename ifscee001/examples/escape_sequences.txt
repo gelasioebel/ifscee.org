@@ -1,0 +1,216 @@
+// ESCAPE SEQUENCES TEST - C99 Compliant
+// Demonstrates all escape sequences supported by the lexer
+// Uncomment one example at a time to test
+
+// =============================================================================
+// EXAMPLE 1: Basic Escape Sequences
+// Demonstrates: \n (newline), \t (tab), \\ (backslash), \" (quote)
+// =============================================================================
+#include <stdio.h>
+
+int main() {
+    printf("Line 1\nLine 2\nLine 3");
+    printf("Tabbed:\tValue1\tValue2");
+    printf("Backslash: \\");
+    printf("Quote: \"Hello\"");
+    return 0;
+}
+
+// =============================================================================
+// EXAMPLE 2: Character Literals with Escapes
+// Demonstrates: '\n', '\t', '\0', '\\', '\'', '\"'
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    char newline = '\n';
+    char tab = '\t';
+    char null = '\0';
+    char backslash = '\\';
+    char quote = '\'';
+
+    printf("Newline ASCII: %d", newline);
+    printf("Tab ASCII: %d", tab);
+    printf("Null ASCII: %d", null);
+    printf("Backslash ASCII: %d", backslash);
+    printf("Quote ASCII: %d", quote);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 3: All Standard Escape Sequences
+// Demonstrates: \a \b \f \n \r \t \v \\ \' \" \?
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    char alert = '\a';      // Alert (bell) - ASCII 7
+    char backspace = '\b';  // Backspace - ASCII 8
+    char formfeed = '\f';   // Form feed - ASCII 12
+    char newline = '\n';    // Newline - ASCII 10
+    char cr = '\r';         // Carriage return - ASCII 13
+    char tab = '\t';        // Tab - ASCII 9
+    char vtab = '\v';       // Vertical tab - ASCII 11
+    char backslash = '\\';  // Backslash - ASCII 92
+    char quote = '\'';      // Single quote - ASCII 39
+    char dquote = '"';      // Double quote - ASCII 34
+    char question = '\?';   // Question mark - ASCII 63
+
+    printf("Alert: %d", alert);
+    printf("Backspace: %d", backspace);
+    printf("Form feed: %d", formfeed);
+    printf("Newline: %d", newline);
+    printf("CR: %d", cr);
+    printf("Tab: %d", tab);
+    printf("VTab: %d", vtab);
+    printf("Backslash: %d", backslash);
+    printf("Quote: %d", quote);
+    printf("DQuote: %d", dquote);
+    printf("Question: %d", question);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 4: Octal Escape Sequences
+// Demonstrates: \0, \77, \012, \141 (up to 3 octal digits)
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    char null = '\0';       // Octal 0 = ASCII 0
+    char question = '\77';  // Octal 77 = ASCII 63 = '?'
+    char newline = '\012';  // Octal 12 = ASCII 10 = '\n'
+    char a_char = '\141';   // Octal 141 = ASCII 97 = 'a'
+
+    printf("Null: %d", null);
+    printf("Question \\77: %c (%d)", question, question);
+    printf("Newline \\012: %d", newline);
+    printf("Char 'a' \\141: %c (%d)", a_char, a_char);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 5: Hexadecimal Escape Sequences
+// Demonstrates: \x41, \xFF, \x00 (unlimited hex digits)
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    char a_char = '\x41';   // Hex 41 = ASCII 65 = 'A'
+    char z_char = '\x5A';   // Hex 5A = ASCII 90 = 'Z'
+    char null = '\x00';     // Hex 00 = ASCII 0
+    char del = '\x7F';      // Hex 7F = ASCII 127 (DEL)
+
+    printf("Char 'A' \\x41: %c (%d)", a_char, a_char);
+    printf("Char 'Z' \\x5A: %c (%d)", z_char, z_char);
+    printf("Null \\x00: %d", null);
+    printf("DEL \\x7F: %d", del);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 6: String Literals with Mixed Escapes
+// Demonstrates: Complex strings with multiple escape types
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    printf("Path: C:\\Program Files\\MyApp");
+    printf("Quote: He said \"Hello!\"");
+    printf("Mixed: Tab\there\nNewline\tbelow");
+    printf("Hex: \\x48\\x65\\x6C\\x6C\\x6F = Hello");
+    printf("Octal: \\110\\145\\154\\154\\157 = Hello");
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 7: Numeric Literals with Different Bases
+// Demonstrates: Decimal, Octal, Hex, Binary numbers
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int decimal = 255;      // Decimal
+    int octal = 0377;       // Octal (0377 = 255)
+    int hex = 0xFF;         // Hexadecimal (0xFF = 255)
+    int binary = 0b11111111; // Binary (GCC extension)
+
+    printf("Decimal: %d", decimal);
+    printf("Octal 0377: %d", octal);
+    printf("Hex 0xFF: %d", hex);
+    printf("Binary 0b11111111: %d", binary);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 8: Floating-Point Literals
+// Demonstrates: Various float formats and suffixes
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    float f1 = 3.14f;       // Float suffix
+    float f2 = 1.5e2f;      // Exponential notation (150.0)
+    float f3 = 2.5e-1f;     // Negative exponent (0.25)
+    double d1 = 3.14159;    // Double (default)
+
+    printf("Float 3.14f: %d", (int)(f1 * 100));
+    printf("Float 1.5e2f: %d", (int)f2);
+    printf("Float 2.5e-1f: %d", (int)(f3 * 100));
+    printf("Double: %d", (int)(d1 * 100));
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 9: Integer Suffixes
+// Demonstrates: u/U (unsigned), l/L (long), ll/LL (long long)
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    int regular = 42;       // Regular int
+    unsigned int u = 42u;   // Unsigned
+    long int l = 42L;       // Long
+    unsigned long ul = 42UL; // Unsigned long
+
+    printf("Regular: %d", regular);
+    printf("Unsigned 42u: %d", u);
+    printf("Long 42L: %d", l);
+    printf("ULong 42UL: %d", ul);
+    return 0;
+}
+*/
+
+// =============================================================================
+// EXAMPLE 10: Wide Characters and Strings (Lexed but not fully supported)
+// Demonstrates: L'a', L"wide string"
+// Note: These are tokenized correctly but may not execute properly
+// =============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    // Wide characters are lexed as NUMBER tokens (like regular chars)
+    // Wide strings are lexed as STRING tokens with isWide=true
+
+    printf("Note: Wide char/string support is partial");
+    printf("Lexer handles L'a' and L\"wide\" correctly");
+    printf("Full runtime support requires wchar_t implementation");
+    return 0;
+}
+*/

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IFSCee</title>
+    <style>
+        /* Estilos Gerais */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .header {
+            background-color: #00c853;
+            color: white;
+            padding: 1rem;
+        }
+        .header h1 {
+            font-size: 2rem;
+        }
+        .container {
+            padding: 1rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .panel {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .editor {
+            height: 400px;
+            background: #1e1e1e;
+            color: #fff;
+            font-family: monospace;
+            padding: 1rem;
+            border: none;
+            width: 100%;
+            resize: none;
+            margin: 1rem 0;
+        }
+        .button {
+            background: #00c853;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .button:hover {
+            background: #00a844;
+        }
+        .memory-state, .call-stack {
+            margin-bottom: 1rem;
+        }
+        .call-stack-item {
+            background: #fff3dc;
+            border: 1px solid #ffecc7;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            border-radius: 4px;
+        }
+        .output {
+            grid-column: 1 / -1;
+            background: black;
+            color: #00ff00;
+            font-family: monospace;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+        h2 {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+<header class="header">
+    <h1>IFSCee</h1>
+    <p>Visualize e entenda código C passo a passo</p>
+</header>
+
+<main class="container">
+    <!-- Editor de Código -->
+    <div class="panel">
+        <h2>Editor de Código</h2>
+        <textarea id="code-editor" class="editor">// Código de exemplo
+int x = 10;
+int y = 5;
+int z = x + y;
+
+if (z > 10) {
+    z = z + 1;
+} else {
+    z = z - 1;
+}</textarea>
+        <button class="button" onclick="executeCode()">Visualizar Execução</button>
+        <button class="button" onclick="clearCode()">Limpar Código</button>
+    </div>
+
+    <!-- Visualização: Memória e Pilha de Chamadas -->
+    <div class="panel">
+        <h2>Visualização</h2>
+        <div class="memory-state">
+            <h3>Estado da Memória</h3>
+            <div id="memory-content">
+                <!-- Estado da memória será exibido aqui -->
+            </div>
+        </div>
+        <div class="call-stack">
+            <h3>Pilha de Chamadas</h3>
+            <div id="call-stack-content">
+                <!-- Pilha de chamadas será exibida aqui -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Saída do Programa -->
+    <div class="panel output">
+        <h2>Saída do Programa</h2>
+        <div id="program-output">
+            <!-- Saída do programa -->
+        </div>
+    </div>
+</main>
+
+<script>
+    /* ----------------------------------------
+       LEXER – Análise Léxica
+    ---------------------------------------- */
+    const TokenType = {
+        NUMBER: 'NUMBER',
+        IDENTIFIER: 'IDENTIFIER',
+        OPERATOR: 'OPERATOR',
+        KEYWORD: 'KEYWORD',
+        PUNCTUATION: 'PUNCTUATION'
+    };
+
+    function lexer(code) {
+        const tokens = [];
+        const keywords = ['int', 'if', 'else', 'return'];
+        const operators = ['+', '-', '*', '/', '=', '==', '<', '<=', '>', '>='];
+        let current = '';
+
+        function isNumber(char) {
+            return /[0-9]/.test(char);
+        }
+        function isLetter(char) {
+            return /[a-zA-Z_]/.test(char);
+        }
+        function addToken() {
+            if (current === '') return;
+            if (keywords.includes(current)) {
+                tokens.push({ type: TokenType.KEYWORD, value: current });
+            } else if (!isNaN(current)) {
+                tokens.push({ type: TokenType.NUMBER, value: parseInt(current, 10) });
+            } else if (isLetter(current[0])) {
+                tokens.push({ type: TokenType.IDENTIFIER, value: current });
+            }
+            current = '';
+        }
+
+        for (let i = 0; i < code.length; i++) {
+            const char = code[i];
+
+            if (char === ' ' || char === '\n' || char === '\t') {
+                addToken();
+                continue;
+            }
+
+            // Verifica operadores (incluindo de dois caracteres)
+            if (operators.includes(char)) {
+                addToken();
+                if (i + 1 < code.length && operators.includes(char + code[i + 1])) {
+                    tokens.push({ type: TokenType.OPERATOR, value: char + code[i + 1] });
+                    i++;
+                } else {
+                    tokens.push({ type: TokenType.OPERATOR, value: char });
+                }
+                continue;
+            }
+
+            if ([';', '(', ')', '{', '}'].includes(char)) {
+                addToken();
+                tokens.push({ type: TokenType.PUNCTUATION, value: char });
+                continue;
+            }
+
+            current += char;
+        }
+        addToken();
+        return tokens;
+    }
+
+    /* ----------------------------------------
+       PARSER – Análise Sintática
+    ---------------------------------------- */
+    function parser(tokens) {
+        let current = 0;
+
+        function peek() {
+            return tokens[current];
+        }
+        function consume() {
+            return tokens[current++];
+        }
+
+        // Suporta expressões binárias simples (apenas um operador)
+        function parseExpression() {
+            let left = consume();
+            if (peek() && peek().type === TokenType.OPERATOR && peek().value !== '=') {
+                const operator = consume();
+                const right = consume();
+                return {
+                    type: 'BinaryExpression',
+                    operator: operator.value,
+                    left: left,
+                    right: right
+                };
+            }
+            return left;
+        }
+
+        // Suporte a blocos delimitados por { e }
+        function parseBlock() {
+            const statements = [];
+            if (peek() && peek().value === '{') {
+                consume(); // consome '{'
+                while (peek() && peek().value !== '}') {
+                    statements.push(parseStatement());
+                }
+                consume(); // consome '}'
+                return { type: 'BlockStatement', body: statements };
+            } else {
+                return parseStatement();
+            }
+        }
+
+        function parseStatement() {
+            let token = peek();
+
+            // Declaração de variável: int x = 10;
+            if (token.type === TokenType.KEYWORD && token.value === 'int') {
+                consume(); // consome 'int'
+                const identifier = consume();
+                if (peek() && peek().value === '=') {
+                    consume(); // consome '='
+                }
+                const value = parseExpression();
+                if (peek() && peek().value === ';') consume();
+                return {
+                    type: 'VariableDeclaration',
+                    identifier: identifier.value,
+                    value: value
+                };
+            }
+
+            // Estrutura if
+            if (token.type === TokenType.KEYWORD && token.value === 'if') {
+                consume(); // consome 'if'
+                const condition = parseExpression();
+                const thenBranch = parseBlock();
+                let elseBranch = null;
+                if (peek() && peek().type === TokenType.KEYWORD && peek().value === 'else') {
+                    consume(); // consome 'else'
+                    elseBranch = parseBlock();
+                }
+                return {
+                    type: 'IfStatement',
+                    condition,
+                    thenBranch,
+                    elseBranch
+                };
+            }
+
+            // Atribuição: x = x + 1;
+            if (token.type === TokenType.IDENTIFIER) {
+                const identifier = consume();
+                if (peek() && peek().value === '=') {
+                    consume(); // consome '='
+                    const value = parseExpression();
+                    if (peek() && peek().value === ';') consume();
+                    return {
+                        type: 'Assignment',
+                        identifier: identifier.value,
+                        value: value
+                    };
+                } else {
+                    const expr = parseExpression();
+                    if (peek() && peek().value === ';') consume();
+                    return expr;
+                }
+            }
+
+            // Caso padrão: expressão seguida de ';'
+            const expr = parseExpression();
+            if (peek() && peek().value === ';') consume();
+            return expr;
+        }
+
+        const statements = [];
+        while (current < tokens.length) {
+            statements.push(parseStatement());
+        }
+        return statements;
+    }
+
+    /* ----------------------------------------
+       INTERPRETER – Execução do AST
+    ---------------------------------------- */
+    function interpreter(ast) {
+        const memory = {};
+        const output = [];
+        const callStack = [];
+
+        function evaluate(node) {
+            if (!node) return null;
+            switch (node.type) {
+                case 'NUMBER':
+                    return node.value;
+                case 'IDENTIFIER':
+                    return memory[node.value];
+                case 'BinaryExpression': {
+                    const left = evaluate(node.left);
+                    const right = evaluate(node.right);
+                    switch (node.operator) {
+                        case '+': return left + right;
+                        case '-': return left - right;
+                        case '*': return left * right;
+                        case '/': return left / right;
+                        case '==': return left === right;
+                        case '<': return left < right;
+                        case '<=': return left <= right;
+                        case '>': return left > right;
+                        case '>=': return left >= right;
+                        default: return null;
+                    }
+                }
+                case 'VariableDeclaration': {
+                    const value = evaluate(node.value);
+                    memory[node.identifier] = value;
+                    output.push(`Declarado ${node.identifier} = ${value}`);
+                    return value;
+                }
+                case 'Assignment': {
+                    const value = evaluate(node.value);
+                    memory[node.identifier] = value;
+                    output.push(`Atribuído ${node.identifier} = ${value}`);
+                    return value;
+                }
+                case 'IfStatement': {
+                    const condition = evaluate(node.condition);
+                    output.push(`Condição if (${condition}) avaliada`);
+                    if (condition) {
+                        callStack.push('if-then');
+                        const result = evaluate(node.thenBranch);
+                        callStack.pop();
+                        return result;
+                    } else if (node.elseBranch) {
+                        callStack.push('if-else');
+                        const result = evaluate(node.elseBranch);
+                        callStack.pop();
+                        return result;
+                    }
+                    return null;
+                }
+                case 'BlockStatement': {
+                    let result = null;
+                    for (const stmt of node.body) {
+                        result = evaluate(stmt);
+                    }
+                    return result;
+                }
+                default:
+                    // Caso em que o nó seja um token bruto
+                    if (node.type === TokenType.NUMBER) return node.value;
+                    if (node.type === TokenType.IDENTIFIER) return memory[node.value];
+                    return null;
+            }
+        }
+
+        for (const statement of ast) {
+            evaluate(statement);
+        }
+        return { memory, output, callStack };
+    }
+
+    /* ----------------------------------------
+       Atualização da Interface (UI)
+    ---------------------------------------- */
+    function updateMemoryUI(memory) {
+        const memDiv = document.getElementById('memory-content');
+        memDiv.innerHTML = Object.entries(memory)
+            .map(([key, value]) => `${key} = ${value}`)
+            .join('<br>');
+    }
+
+    function updateOutputUI(output) {
+        const outputDiv = document.getElementById('program-output');
+        outputDiv.innerHTML = output.join('<br>');
+    }
+
+    function updateCallStackUI(callStack) {
+        const stackDiv = document.getElementById('call-stack-content');
+        stackDiv.innerHTML = callStack
+            .map(item => `<div class="call-stack-item">${item}</div>`)
+            .join('');
+    }
+
+    /* ----------------------------------------
+       Funções de Execução e Limpeza
+    ---------------------------------------- */
+    function executeCode() {
+        const code = document.getElementById('code-editor').value;
+        try {
+            const tokens = lexer(code);
+            const ast = parser(tokens);
+            const result = interpreter(ast);
+            updateMemoryUI(result.memory);
+            updateOutputUI(result.output);
+            updateCallStackUI(result.callStack);
+        } catch (error) {
+            document.getElementById('program-output').innerHTML = 'Erro: ' + error.message;
+        }
+    }
+
+    function clearCode() {
+        document.getElementById('code-editor').value = '';
+        document.getElementById('memory-content').innerHTML = '';
+        document.getElementById('program-output').innerHTML = '';
+        document.getElementById('call-stack-content').innerHTML = '';
+    }
+</script>
+</body>
+</html>

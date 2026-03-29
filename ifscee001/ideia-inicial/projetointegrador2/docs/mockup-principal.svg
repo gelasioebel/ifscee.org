@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="1000" height="700">
+  <!-- Cores do IFSC -->
+  <defs>
+    <linearGradient id="verde-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#006837;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00552e;stop-opacity:1" />
+    </linearGradient>
+    <style>
+      .texto-cabecalho { fill: white; font-family: 'Arial', sans-serif; font-size: 16px; font-weight: bold; }
+      .texto-botao { fill: white; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .texto-conteudo { fill: #333; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .texto-codigo { fill: #333; font-family: 'Consolas', monospace; font-size: 12px; }
+    </style>
+  </defs>
+
+  <!-- Fundo -->
+  <rect width="1000" height="700" fill="#f5f5f5" />
+  
+  <!-- Topo / Barra de Navegação -->
+  <rect width="1000" height="50" fill="url(#verde-gradient)" />
+  <text x="60" y="30" class="texto-cabecalho">IFSCEE - Interpretador de Linguagem C</text>
+  
+  <!-- Logo IFSC -->
+  <rect x="10" y="10" width="30" height="30" rx="5" fill="white" />
+  <text x="15" y="30" fill="#006837" font-family="Arial" font-weight="bold" font-size="18">IF</text>
+  
+  <!-- Botões do topo -->
+  <rect x="910" y="15" width="30" height="20" rx="3" fill="rgba(255,255,255,0.2)" />
+  <text x="917" y="30" class="texto-botao">⚙</text>
+  <rect x="860" y="15" width="40" height="20" rx="3" fill="rgba(255,255,255,0.2)" />
+  <text x="867" y="30" class="texto-botao">Layout</text>
+  
+  <!-- Container Principal -->
+  <rect x="10" y="60" width="980" height="500" rx="5" fill="white" stroke="#ddd" />
+  
+  <!-- Painel Arquivos -->
+  <rect x="10" y="60" width="100" height="500" rx="5" fill="white" stroke="#ddd" />
+  <rect x="10" y="60" width="100" height="30" rx="5" fill="#006837" />
+  <text x="40" y="80" class="texto-cabecalho">Arquivos</text>
+  
+  <!-- Conteúdo do painel Arquivos -->
+  <rect x="15" y="100" width="90" height="20" rx="3" fill="#f9f9f9" />
+  <text x="35" y="115" class="texto-conteudo">main.c</text>
+  <rect x="15" y="125" width="90" height="20" rx="3" fill="#f9f9f9" />
+  <text x="35" y="140" class="texto-conteudo">utils.c</text>
+  <rect x="15" y="150" width="90" height="20" rx="3" fill="#f9f9f9" />
+  <text x="35" y="165" class="texto-conteudo">header.h</text>
+  
+  <!-- Painel Editor -->
+  <rect x="115" y="60" width="500" height="330" rx="5" fill="white" stroke="#ddd" />
+  <rect x="115" y="60" width="500" height="30" rx="5" fill="#006837" />
+  <text x="180" y="80" class="texto-cabecalho">Editor de Código</text>
+  
+  <!-- Conteúdo do Editor -->
+  <rect x="120" y="95" width="490" height="290" rx="3" fill="#f9f9f9" />
+  <text x="130" y="115" class="texto-codigo">#include &lt;stdio.h&gt;</text>
+  <text x="130" y="135" class="texto-codigo">int main(void) {</text>
+  <text x="150" y="155" class="texto-codigo">int a = 10;</text>
+  <text x="150" y="175" class="texto-codigo">int b = 20;</text>
+  <text x="150" y="195" class="texto-codigo">int sum = a + b;</text>
+  <text x="150" y="215" class="texto-codigo">printf("Soma: %d\n", sum);</text>
+  <text x="150" y="235" class="texto-codigo">return 0;</text>
+  <text x="130" y="255" class="texto-codigo">}</text>
+  
+  <!-- Barra de Navegação -->
+  <rect x="115" y="395" width="500" height="40" rx="5" fill="#006837" />
+  <rect x="130" y="405" width="80" height="20" rx="3" fill="#198754" />
+  <text x="140" y="420" class="texto-botao">▶ Executar</text>
+  <rect x="220" y="405" width="80" height="20" rx="3" fill="#198754" />
+  <text x="230" y="420" class="texto-botao">◀ Anterior</text>
+  <rect x="310" y="405" width="80" height="20" rx="3" fill="#198754" />
+  <text x="320" y="420" class="texto-botao">▶ Próximo</text>
+  <rect x="400" y="405" width="80" height="20" rx="3" fill="#dc3545" />
+  <text x="410" y="420" class="texto-botao">↻ Reiniciar</text>
+  
+  <!-- Painel Entrada/Saída -->
+  <rect x="115" y="440" width="245" height="120" rx="5" fill="white" stroke="#ddd" />
+  <rect x="115" y="440" width="245" height="30" rx="5" fill="#006837" />
+  <text x="180" y="460" class="texto-cabecalho">Entrada</text>
+  <rect x="120" y="475" width="235" height="80" rx="3" fill="#f9f9f9" />
+  
+  <rect x="370" y="440" width="245" height="120" rx="5" fill="white" stroke="#ddd" />
+  <rect x="370" y="440" width="245" height="30" rx="5" fill="#006837" />
+  <text x="435" y="460" class="texto-cabecalho">Saída</text>
+  <rect x="375" y="475" width="235" height="80" rx="3" fill="#000" />
+  <text x="385" y="495" fill="white" class="texto-codigo">Soma: 30</text>
+  
+  <!-- Painel Memória -->
+  <rect x="620" y="60" width="370" height="500" rx="5" fill="white" stroke="#ddd" />
+  <rect x="620" y="60" width="370" height="30" rx="5" fill="#006837" />
+  <text x="800" y="80" class="texto-cabecalho">Memória</text>
+  
+  <!-- Pilha e Heap -->
+  <rect x="625" y="95" width="360" height="250" rx="3" fill="#f9f9f9" />
+  <rect x="625" y="95" width="80" height="25" rx="3" fill="#198754" />
+  <text x="645" y="112" class="texto-botao">Pilha</text>
+  
+  <rect x="635" y="125" width="100" height="20" rx="3" fill="#e9ecef" stroke="#ddd" />
+  <text x="645" y="140" class="texto-conteudo">main() frame</text>
+  <rect x="635" y="150" width="100" height="20" rx="3" fill="#e9ecef" stroke="#ddd" />
+  <text x="645" y="165" class="texto-conteudo">a = 10</text>
+  <rect x="635" y="175" width="100" height="20" rx="3" fill="#e9ecef" stroke="#ddd" />
+  <text x="645" y="190" class="texto-conteudo">b = 20</text>
+  <rect x="635" y="200" width="100" height="20" rx="3" fill="#e9ecef" stroke="#ddd" />
+  <text x="645" y="215" class="texto-conteudo">sum = 30</text>
+  
+  <rect x="750" y="95" width="80" height="25" rx="3" fill="#198754" />
+  <text x="770" y="112" class="texto-botao">Heap</text>
+  <rect x="750" y="125" width="225" height="155" rx="3" fill="#e9ecef" stroke="#ddd" />
+  <text x="830" y="190" class="texto-conteudo">[vazio]</text>
+  
+  <!-- Tokens e AST -->
+  <rect x="10" y="565" width="980" height="130" rx="5" fill="white" stroke="#ddd" />
+  
+  <!-- Tokens -->
+  <rect x="10" y="565" width="485" height="130" rx="5" fill="white" stroke="#ddd" />
+  <rect x="10" y="565" width="485" height="30" rx="5" fill="#006837" />
+  <text x="230" y="585" class="texto-cabecalho">Tokens</text>
+  <rect x="15" y="600" width="475" height="90" rx="3" fill="#f9f9f9" />
+  <text x="25" y="620" class="texto-conteudo">[int][main][void][{][int][a][=][10][;]...</text>
+  
+  <!-- AST -->
+  <rect x="505" y="565" width="485" height="130" rx="5" fill="white" stroke="#ddd" />
+  <rect x="505" y="565" width="485" height="30" rx="5" fill="#006837" />
+  <text x="725" y="585" class="texto-cabecalho">AST</text>
+  <rect x="510" y="600" width="475" height="90" rx="3" fill="#f9f9f9" />
+  <text x="520" y="620" class="texto-conteudo">FunctionDecl 'main'</text>
+  <text x="540" y="640" class="texto-conteudo">├── Decl 'a' = 10</text>
+  <text x="540" y="660" class="texto-conteudo">├── Decl 'b' = 20</text>
+  <text x="540" y="680" class="texto-conteudo">└── Return 0</text>
+</svg>

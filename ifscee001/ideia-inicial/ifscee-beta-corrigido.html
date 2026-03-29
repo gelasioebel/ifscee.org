@@ -1,0 +1,2848 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSCEE Beta - Recursividade e Ponteiros</title>
+    <!-- Frameworks de CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/theme/dracula.min.css">
+    <style>
+        :root {
+            --primary-color: #006837;
+            --primary-dark: #00552e;
+            --secondary-color: #198754;
+            --bg-dark: #212529;
+            --terminal-bg: #000000;
+            --terminal-text: #ffffff;
+            --panel-bg: #f9f9f9;
+            --border-color: #ddd;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            overflow-x: hidden;
+        }
+        
+        .navbar {
+            background: linear-gradient(to bottom, var(--primary-color), var(--primary-dark));
+            border-bottom: 1px solid var(--primary-dark);
+        }
+
+        .logo-container {
+            background-color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+        }
+
+        .logo-text {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .sidebar {
+            background-color: white;
+            color: #333;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .sidebar-content {
+            padding: 10px;
+        }
+        
+        .panel {
+            background-color: white;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            font-weight: bold;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .panel-content {
+            padding: 10px;
+            background-color: var(--panel-bg);
+            overflow: auto;
+        }
+        
+        .editor-container {
+            width: 100%;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .CodeMirror {
+            height: 100%;
+            font-size: 14px;
+            font-family: 'Consolas', monospace;
+        }
+        
+        .terminal {
+            width: 100%;
+            height: 100%;
+            background-color: var(--terminal-bg);
+            color: var(--terminal-text);
+            font-family: 'Consolas', monospace;
+            padding: 10px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            border-radius: 3px;
+        }
+        
+        .nav-buttons {
+            background-color: var(--primary-color);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .control-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 15px;
+            font-size: 12px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        .control-btn-danger {
+            background-color: #dc3545;
+        }
+        
+        .highlighted-line {
+            background-color: rgba(255, 255, 0, 0.2) !important;
+        }
+        
+        .terminal-entrada {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            padding: 5px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+
+        .item-arquivo {
+            background-color: var(--panel-bg);
+            padding: 5px 10px;
+            margin-bottom: 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .item-arquivo:hover {
+            background-color: #e9ecef;
+        }
+
+        .item-arquivo.active {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+
+        .stack-item, .heap-item {
+            background-color: #e9ecef;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 5px 10px;
+            margin-bottom: 5px;
+        }
+
+        .memory-tab {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ast-node {
+            margin-left: 20px;
+        }
+        
+        /* Estilo para visualização de ponteiros */
+        .pointer-arrow {
+            color: #0d6efd;
+            font-weight: bold;
+        }
+        
+        .pointer-value {
+            background-color: rgba(13, 110, 253, 0.1);
+            border: 1px solid rgba(13, 110, 253, 0.3);
+            border-radius: 3px;
+            padding: 1px 5px;
+            margin: 0 3px;
+        }
+        
+        /* Estilo para stack frames de recursão */
+        .recursion-level {
+            border-left: 3px solid #198754;
+            margin-left: 5px;
+            padding-left: 8px;
+        }
+        
+        /* Abas para diferentes visualizações */
+        .nav-tabs .nav-link {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        
+        .nav-tabs .nav-link.active {
+            background-color: var(--panel-bg);
+            border-bottom-color: var(--panel-bg);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <div class="logo-container">
+                <span class="logo-text">IF</span>
+            </div>
+            <span class="navbar-brand">IFSCEE Beta - Recursividade e Ponteiros</span>
+            <div class="ms-auto">
+                <span class="badge bg-warning text-dark me-2">Versão Beta</span>
+                <button class="btn btn-sm text-white" style="background-color: rgba(255,255,255,0.2);">Layout</button>
+                <button class="btn btn-sm text-white" style="background-color: rgba(255,255,255,0.2);">⚙</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid py-3">
+        <div class="row">
+            <!-- Barra lateral de arquivos -->
+            <div class="col-md-1 px-2">
+                <div class="sidebar">
+                    <div class="sidebar-header text-center">Arquivos</div>
+                    <div class="sidebar-content">
+                        <div class="item-arquivo" data-arquivo="main.c">main.c</div>
+                        <div class="item-arquivo active" data-arquivo="recursivo.c">recursivo.c</div>
+                        <div class="item-arquivo" data-arquivo="ponteiros.c">ponteiros.c</div>
+                        <div class="item-arquivo" data-arquivo="combinado.c">combinado.c</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conteúdo principal -->
+            <div class="col-md-6 px-2">
+                <!-- Editor de Código -->
+                <div class="panel">
+                    <div class="panel-header text-center">Editor de Código</div>
+                    <div class="panel-content p-2">
+                        <div id="editor-conteudo" class="editor-container"></div>
+                    </div>
+                </div>
+
+                <!-- Botões de controle -->
+                <div class="nav-buttons d-flex justify-content-center">
+                    <button id="botao-executar" class="control-btn">▶ Executar</button>
+                    <button id="botao-anterior" class="control-btn">◀ Anterior</button>
+                    <button id="botao-proximo" class="control-btn">▶ Próximo</button>
+                    <button id="botao-reiniciar" class="control-btn control-btn-danger">↻ Reiniciar</button>
+                </div>
+
+                <!-- Terminal -->
+                <div class="row">
+                    <div class="col-md-6 px-2">
+                        <div class="panel">
+                            <div class="panel-header text-center">Entrada</div>
+                            <div class="panel-content" style="height: 120px;">
+                                <input type="text" id="entrada-conteudo" class="terminal-entrada" placeholder="Digite entrada para o programa...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 px-2">
+                        <div class="panel">
+                            <div class="panel-header text-center">Saída</div>
+                            <div class="panel-content" style="height: 120px; padding: 0;">
+                                <div class="terminal">
+                                    <div id="saida-conteudo"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel de Visualização -->
+            <div class="col-md-5 px-2">
+                <!-- Visualização da Memória -->
+                <div class="panel">
+                    <div class="panel-header text-center">Memória</div>
+                    <div class="panel-content" style="height: 300px;">
+                        <ul class="nav nav-tabs" id="memory-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="stack-tab" data-bs-toggle="tab" href="#stack-content">Pilha</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="heap-tab" data-bs-toggle="tab" href="#heap-content">Heap</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="pointer-tab" data-bs-toggle="tab" href="#pointer-content">Ponteiros</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content mt-2">
+                            <div class="tab-pane fade show active" id="stack-content">
+                                <div id="stack-container"></div>
+                            </div>
+                            <div class="tab-pane fade" id="heap-content">
+                                <div id="heap-container"></div>
+                            </div>
+                            <div class="tab-pane fade" id="pointer-content">
+                                <div id="pointer-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tokens e AST -->
+                <div class="row">
+                    <div class="col-md-6 px-2">
+                        <div class="panel">
+                            <div class="panel-header text-center">Tokens</div>
+                            <div class="panel-content" style="height: 200px; overflow-y: auto;">
+                                <div id="tokens-container" style="font-family: monospace; font-size: 12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 px-2">
+                        <div class="panel">
+                            <div class="panel-header text-center">AST</div>
+                            <div class="panel-content" style="height: 200px; overflow-y: auto;">
+                                <div id="ast-container" style="font-family: monospace; font-size: 12px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/6.65.7/addon/edit/matchbrackets.min.js"></script>
+
+    <!-- Código do IFSCEE Beta -->
+    <script>
+        // Classes principais do IFSCEE Beta com suporte a recursividade e ponteiros
+
+        // Classe Token
+        class Token {
+            constructor(tipo, valor, linha, coluna) {
+                this.tipo = tipo;
+                this.valor = valor;
+                this.linha = linha;
+                this.coluna = coluna;
+            }
+        }
+
+        // Classe NoAst
+        class NoAst {
+            constructor(tipo, valor = null, linha = null, coluna = null) {
+                this.tipo = tipo;
+                this.valor = valor;
+                this.linha = linha;
+                this.coluna = coluna;
+                this.filhos = [];
+                this.pai = null;
+                this.proximo = null;
+                this.tipoRetorno = null;  // Para funções e ponteiros
+                this.tipoVariavel = null; // Para variáveis
+                this.ehPonteiro = false;  // Indica se é um ponteiro
+                this.nivel = 0;           // Nível de ponteiro (int* = 1, int** = 2)
+            }
+
+            adicionaFilho(filho) {
+                this.filhos.push(filho);
+                filho.pai = this;
+                return filho;
+            }
+        }
+
+        // Analisador léxico aprimorado para ponteiros
+        class AnalisadorLexico {
+            constructor() {
+                this.codigoFonte = '';
+                this.posicaoAtual = 0;
+                this.linhaAtual = 1;
+                this.colunaAtual = 1;
+                this.tokens = [];
+                this.palavrasChave = [
+                    'auto', 'break', 'case', 'char', 'const', 'continue', 'default', 'do',
+                    'double', 'else', 'enum', 'extern', 'float', 'for', 'goto', 'if',
+                    'int', 'long', 'register', 'return', 'short', 'signed', 'sizeof', 'static',
+                    'struct', 'switch', 'typedef', 'union', 'unsigned', 'void', 'volatile', 'while',
+                    'include'
+                ];
+            }
+
+            analisaTexto(codigoFonte) {
+                this.codigoFonte = codigoFonte;
+                this.posicaoAtual = 0;
+                this.linhaAtual = 1;
+                this.colunaAtual = 1;
+                this.tokens = [];
+
+                while (this.posicaoAtual < this.codigoFonte.length) {
+                    const charAtual = this.pegaCharAtual();
+
+                    // Ignora espaços em branco
+                    if (this.ehEspacoEmBranco(charAtual)) {
+                        this.avanca();
+                        continue;
+                    }
+
+                    // Comentários
+                    if (charAtual === '/' && this.pegaProximoChar() === '/') {
+                        this.processaComentarioLinha();
+                        continue;
+                    }
+
+                    if (charAtual === '/' && this.pegaProximoChar() === '*') {
+                        this.processaComentarioBloco();
+                        continue;
+                    }
+
+                    // Pré-processador
+                    if (charAtual === '#') {
+                        this.processaPreprocessador();
+                        continue;
+                    }
+
+                    // Identificadores e palavras-chave
+                    if (this.ehLetra(charAtual) || charAtual === '_') {
+                        this.processaIdentificador();
+                        continue;
+                    }
+
+                    // Números
+                    if (this.ehDigito(charAtual)) {
+                        this.processaNumero();
+                        continue;
+                    }
+
+                    // Strings
+                    if (charAtual === '"') {
+                        this.processaString();
+                        continue;
+                    }
+
+                    // Caracteres
+                    if (charAtual === "'") {
+                        this.processaCaractere();
+                        continue;
+                    }
+
+                    // Operadores e pontuação com tratamento especial para operadores de ponteiro (* e &)
+                    this.processaOperadorOuPontuacao();
+                }
+
+                // Adiciona token de fim de arquivo
+                this.adicionaToken('EOF', '', this.linhaAtual, this.colunaAtual);
+                return this.tokens;
+            }
+
+            // Métodos auxiliares
+            pegaCharAtual() {
+                if (this.posicaoAtual >= this.codigoFonte.length) return null;
+                return this.codigoFonte[this.posicaoAtual];
+            }
+
+            pegaProximoChar() {
+                if (this.posicaoAtual + 1 >= this.codigoFonte.length) return null;
+                return this.codigoFonte[this.posicaoAtual + 1];
+            }
+
+            avanca() {
+                if (this.pegaCharAtual() === '\n') {
+                    this.linhaAtual++;
+                    this.colunaAtual = 1;
+                } else {
+                    this.colunaAtual++;
+                }
+                this.posicaoAtual++;
+            }
+
+            // Processamento de tipos específicos
+            processaIdentificador() {
+                let identificador = '';
+
+                while (
+                    this.pegaCharAtual() && 
+                    (this.ehLetra(this.pegaCharAtual()) || 
+                    this.ehDigito(this.pegaCharAtual()) || 
+                    this.pegaCharAtual() === '_')
+                ) {
+                    identificador += this.pegaCharAtual();
+                    this.avanca();
+                }
+
+                // Verifica se é uma palavra-chave
+                const tipo = this.palavrasChave.includes(identificador) ? 'KEYWORD' : 'IDENTIFIER';
+                this.adicionaToken(tipo, identificador, this.linhaAtual, this.colunaAtual - identificador.length);
+            }
+
+            processaNumero() {
+                let numero = '';
+                let tipoNumero = 'INT';
+
+                // Processa a parte inteira
+                while (this.pegaCharAtual() && this.ehDigito(this.pegaCharAtual())) {
+                    numero += this.pegaCharAtual();
+                    this.avanca();
+                }
+
+                // Processa a parte decimal se houver
+                if (this.pegaCharAtual() === '.') {
+                    tipoNumero = 'FLOAT';
+                    numero += '.';
+                    this.avanca();
+
+                    while (this.pegaCharAtual() && this.ehDigito(this.pegaCharAtual())) {
+                        numero += this.pegaCharAtual();
+                        this.avanca();
+                    }
+                }
+
+                // Sufixos de tipo (f, l, etc.)
+                if (this.pegaCharAtual() && this.ehLetra(this.pegaCharAtual())) {
+                    const sufixo = this.pegaCharAtual().toLowerCase();
+                    if (sufixo === 'f' || sufixo === 'l') {
+                        numero += this.pegaCharAtual();
+                        this.avanca();
+                    }
+                }
+
+                this.adicionaToken(tipoNumero, numero, this.linhaAtual, this.colunaAtual - numero.length);
+            }
+
+            processaString() {
+                let string = '';
+                this.avanca(); // Pula a aspa inicial
+
+                while (this.pegaCharAtual() && this.pegaCharAtual() !== '"') {
+                    // Processamento de escapes
+                    if (this.pegaCharAtual() === '\\' && this.pegaProximoChar()) {
+                        string += this.pegaCharAtual();
+                        this.avanca();
+                    }
+                    string += this.pegaCharAtual();
+                    this.avanca();
+                }
+
+                if (this.pegaCharAtual() === '"') {
+                    this.avanca(); // Pula a aspa final
+                    this.adicionaToken('STRING', string, this.linhaAtual, this.colunaAtual - string.length - 2);
+                } else {
+                    console.error('String não terminada');
+                }
+            }
+
+            processaCaractere() {
+                let caractere = '';
+                this.avanca(); // Pula a aspa inicial
+
+                if (this.pegaCharAtual() === '\\') {
+                    caractere += this.pegaCharAtual();
+                    this.avanca();
+                }
+
+                if (this.pegaCharAtual()) {
+                    caractere += this.pegaCharAtual();
+                    this.avanca();
+                }
+
+                if (this.pegaCharAtual() === "'") {
+                    this.avanca(); // Pula a aspa final
+                    this.adicionaToken('CHAR', caractere, this.linhaAtual, this.colunaAtual - caractere.length - 2);
+                } else {
+                    console.error('Caractere não terminado');
+                }
+            }
+
+            processaOperadorOuPontuacao() {
+                const charAtual = this.pegaCharAtual();
+                const proximoChar = this.pegaProximoChar();
+                
+                // Operadores com dois caracteres
+                if ((charAtual === '+' && proximoChar === '+') ||
+                    (charAtual === '-' && proximoChar === '-') ||
+                    (charAtual === '=' && proximoChar === '=') ||
+                    (charAtual === '!' && proximoChar === '=') ||
+                    (charAtual === '<' && proximoChar === '=') ||
+                    (charAtual === '>' && proximoChar === '=') ||
+                    (charAtual === '&' && proximoChar === '&') ||
+                    (charAtual === '|' && proximoChar === '|') ||
+                    (charAtual === '+' && proximoChar === '=') ||
+                    (charAtual === '-' && proximoChar === '=') ||
+                    (charAtual === '*' && proximoChar === '=') ||
+                    (charAtual === '/' && proximoChar === '=') ||
+                    (charAtual === '%' && proximoChar === '=') ||
+                    (charAtual === '-' && proximoChar === '>')) { // Operador de ponteiro para struct
+                    
+                    const operador = charAtual + proximoChar;
+                    this.adicionaToken('OPERATOR', operador, this.linhaAtual, this.colunaAtual);
+                    this.avanca();
+                    this.avanca();
+                } else {
+                    // Operadores e pontuação de um caractere
+                    // Para ponteiros, usamos * e & como operadores específicos
+                    if (charAtual === '*') {
+                        this.adicionaToken('ASTERISK', charAtual, this.linhaAtual, this.colunaAtual);
+                    } else if (charAtual === '&') {
+                        this.adicionaToken('AMPERSAND', charAtual, this.linhaAtual, this.colunaAtual);
+                    } else {
+                        this.adicionaToken('OPERATOR', charAtual, this.linhaAtual, this.colunaAtual);
+                    }
+                    this.avanca();
+                }
+            }
+
+            processaComentarioLinha() {
+                this.avanca(); // Pula a primeira /
+                this.avanca(); // Pula a segunda /
+
+                while (this.pegaCharAtual() && this.pegaCharAtual() !== '\n') {
+                    this.avanca();
+                }
+            }
+
+            processaComentarioBloco() {
+                this.avanca(); // Pula a /
+                this.avanca(); // Pula o *
+
+                while (this.pegaCharAtual()) {
+                    if (this.pegaCharAtual() === '*' && this.pegaProximoChar() === '/') {
+                        this.avanca(); // Pula o *
+                        this.avanca(); // Pula a /
+                        break;
+                    }
+                    this.avanca();
+                }
+            }
+
+            processaPreprocessador() {
+                this.avanca(); // Pula o #
+                
+                // Ignora espaços em branco após o #
+                while (this.pegaCharAtual() && this.ehEspacoEmBranco(this.pegaCharAtual())) {
+                    this.avanca();
+                }
+                
+                // Processa a diretiva do pré-processador
+                let diretiva = '';
+                while (this.pegaCharAtual() && !this.ehEspacoEmBranco(this.pegaCharAtual()) && this.pegaCharAtual() !== '\n') {
+                    diretiva += this.pegaCharAtual();
+                    this.avanca();
+                }
+                
+                this.adicionaToken('PREPROCESSOR', diretiva, this.linhaAtual, this.colunaAtual - diretiva.length - 1);
+                
+                // Processa o restante da linha do pré-processador
+                while (this.pegaCharAtual() && this.pegaCharAtual() !== '\n') {
+                    this.avanca();
+                }
+            }
+
+            // Funções de verificação
+            ehLetra(char) {
+                return /[a-zA-Z]/.test(char);
+            }
+
+            ehDigito(char) {
+                return /[0-9]/.test(char);
+            }
+
+            ehEspacoEmBranco(char) {
+                return /\s/.test(char);
+            }
+
+            adicionaToken(tipo, valor, linha, coluna) {
+                this.tokens.push(new Token(tipo, valor, linha, coluna));
+            }
+        }
+
+        // Analisador sintático aprimorado para ponteiros e recursividade
+        class AnalisadorSintatico {
+            constructor(analisadorLexico) {
+                this.analisadorLexico = analisadorLexico;
+                this.tokens = [];
+                this.posicaoAtual = 0;
+            }
+
+            analisaTokens(tokens) {
+                this.tokens = tokens;
+                this.posicaoAtual = 0;
+                return this.analisaPrograma();
+            }
+
+            // Analisa um programa C completo
+            analisaPrograma() {
+                const raiz = new NoAst('PROGRAM');
+                
+                // Processa diretivas de pré-processador primeiro
+                while (this.posicaoAtual < this.tokens.length && 
+                      this.pegaTokenAtual().tipo === 'PREPROCESSOR') {
+                    raiz.adicionaFilho(this.analisaPreprocessador());
+                }
+                
+                // Processa declarações globais e funções
+                while (this.posicaoAtual < this.tokens.length && 
+                      this.pegaTokenAtual().tipo !== 'EOF') {
+                    
+                    // Se for uma declaração de função ou variável global
+                    if (this.ehDeclaracao()) {
+                        raiz.adicionaFilho(this.analisaDeclaracao());
+                    } else {
+                        this.avanca(); // Pula tokens não reconhecidos
+                    }
+                }
+                
+                return raiz;
+            }
+
+            // Verifica se o token atual inicia uma declaração
+            ehDeclaracao() {
+                const tiposValidos = ['int', 'char', 'float', 'double', 'void', 'long', 'short', 'unsigned', 'signed'];
+                return this.pegaTokenAtual().tipo === 'KEYWORD' && 
+                       tiposValidos.includes(this.pegaTokenAtual().valor);
+            }
+
+            // Analisa uma declaração (função ou variável)
+            analisaDeclaracao() {
+                const tipoToken = this.pegaTokenAtual();
+                const tipo = tipoToken.valor;
+                this.avanca();
+                
+                // Verifica se é um ponteiro
+                let nivelPonteiro = 0;
+                while (this.pegaTokenAtual().tipo === 'ASTERISK') {
+                    nivelPonteiro++;
+                    this.avanca();
+                }
+                
+                // Verifica se é um identificador
+                if (this.pegaTokenAtual().tipo !== 'IDENTIFIER') {
+                    console.error('Esperado identificador após tipo');
+                    return null;
+                }
+                
+                const nomeToken = this.pegaTokenAtual();
+                const nome = nomeToken.valor;
+                this.avanca();
+                
+                // Se for uma função
+                if (this.pegaTokenAtual().valor === '(') {
+                    return this.analisaFuncao(tipo, nome, nomeToken.linha, nomeToken.coluna, nivelPonteiro);
+                }
+                
+                // Se for uma variável
+                return this.analisaDeclaracaoVariavel(tipo, nome, nomeToken.linha, nomeToken.coluna, nivelPonteiro);
+            }
+
+            // Analisa uma função
+            analisaFuncao(tipo, nome, linha, coluna, nivelPonteiro) {
+                const no = new NoAst('FUNCTION_DECL', nome, linha, coluna);
+                no.tipoRetorno = tipo;
+                no.ehPonteiro = nivelPonteiro > 0;
+                no.nivel = nivelPonteiro;
+                
+                // Parâmetros
+                this.consume('(');
+                if (this.pegaTokenAtual().valor !== ')') {
+                    no.adicionaFilho(this.analisaParametros());
+                }
+                this.consume(')');
+                
+                // Corpo da função
+                no.adicionaFilho(this.analisaBlocoComando());
+                
+                return no;
+            }
+
+            // Analisa parâmetros de função
+            analisaParametros() {
+                const no = new NoAst('PARAMS');
+                
+                do {
+                    if (this.ehDeclaracao()) {
+                        const tipo = this.pegaTokenAtual().valor;
+                        this.avanca();
+                        
+                        // Verifica se é ponteiro
+                        let nivelPonteiro = 0;
+                        while (this.pegaTokenAtual().tipo === 'ASTERISK') {
+                            nivelPonteiro++;
+                            this.avanca();
+                        }
+                        
+                        if (this.pegaTokenAtual().tipo === 'IDENTIFIER') {
+                            const nome = this.pegaTokenAtual().valor;
+                            const linha = this.pegaTokenAtual().linha;
+                            const coluna = this.pegaTokenAtual().coluna;
+                            this.avanca();
+                            
+                            const paramNo = new NoAst('PARAM_DECL', nome, linha, coluna);
+                            paramNo.tipoVariavel = tipo;
+                            paramNo.ehPonteiro = nivelPonteiro > 0;
+                            paramNo.nivel = nivelPonteiro;
+                            no.adicionaFilho(paramNo);
+                        }
+                    }
+                    
+                    if (this.pegaTokenAtual().valor === ',') {
+                        this.avanca();
+                    } else {
+                        break;
+                    }
+                } while (true);
+                
+                return no;
+            }
+
+            // Analisa um bloco de comandos
+            analisaBlocoComando() {
+                const no = new NoAst('COMPOUND_STMT');
+                
+                this.consume('{');
+                
+                while (this.pegaTokenAtual().valor !== '}' && 
+                      this.pegaTokenAtual().tipo !== 'EOF') {
+                    // Declaração de variável local
+                    if (this.ehDeclaracao()) {
+                        no.adicionaFilho(this.analisaDeclaracaoVariavel(
+                            this.pegaTokenAtual().valor, 
+                            null, 
+                            this.pegaTokenAtual().linha, 
+                            this.pegaTokenAtual().coluna
+                        ));
+                    } 
+                    // Comando
+                    else {
+                        no.adicionaFilho(this.analisaComando());
+                    }
+                }
+                
+                this.consume('}');
+                return no;
+            }
+
+            // Analisa um comando
+            analisaComando() {
+                // Return
+                if (this.pegaTokenAtual().tipo === 'KEYWORD' && 
+                   this.pegaTokenAtual().valor === 'return') {
+                    return this.analisaReturn();
+                }
+                
+                // If
+                if (this.pegaTokenAtual().tipo === 'KEYWORD' && 
+                   this.pegaTokenAtual().valor === 'if') {
+                    return this.analisaIf();
+                }
+                
+                // While
+                if (this.pegaTokenAtual().tipo === 'KEYWORD' && 
+                   this.pegaTokenAtual().valor === 'while') {
+                    return this.analisaWhile();
+                }
+                
+                // For
+                if (this.pegaTokenAtual().tipo === 'KEYWORD' && 
+                   this.pegaTokenAtual().valor === 'for') {
+                    return this.analisaFor();
+                }
+                
+                // Bloco de comandos
+                if (this.pegaTokenAtual().valor === '{') {
+                    return this.analisaBlocoComando();
+                }
+                
+                // Expressão (incluindo chamadas de função)
+                const no = this.analisaExpressao();
+                this.consume(';');
+                return no;
+            }
+
+            // Analisa declaração de variável
+            analisaDeclaracaoVariavel(tipo, nome, linha, coluna, nivelPonteiro = 0) {
+                // Se o nome não foi fornecido, avança e consome o tipo
+                if (!nome) {
+                    // Já consumiu o tipo anteriormente
+                    
+                    // Verifica se é ponteiro
+                    while (this.pegaTokenAtual().tipo === 'ASTERISK') {
+                        nivelPonteiro++;
+                        this.avanca();
+                    }
+                    
+                    nome = this.pegaTokenAtual().valor;
+                    linha = this.pegaTokenAtual().linha;
+                    coluna = this.pegaTokenAtual().coluna;
+                    this.avanca(); // Consome o nome
+                }
+                
+                const no = new NoAst('VAR_DECL', nome, linha, coluna);
+                no.tipoVariavel = tipo;
+                no.ehPonteiro = nivelPonteiro > 0;
+                no.nivel = nivelPonteiro;
+                
+                // Inicialização
+                if (this.pegaTokenAtual().valor === '=') {
+                    this.avanca(); // Consome o '='
+                    no.adicionaFilho(this.analisaExpressao());
+                }
+                
+                this.consume(';');
+                return no;
+            }
+
+            // Analisa o comando return
+            analisaReturn() {
+                const token = this.pegaTokenAtual();
+                this.avanca(); // Consome 'return'
+                
+                const no = new NoAst('RETURN_STMT', null, token.linha, token.coluna);
+                
+                // Se não for um return vazio
+                if (this.pegaTokenAtual().valor !== ';') {
+                    no.adicionaFilho(this.analisaExpressao());
+                }
+                
+                this.consume(';');
+                return no;
+            }
+
+            // Analisa expressão relacional (==, !=, <, >, <=, >=)
+            analisaExpressaoRelacional() {
+                let no = this.analisaExpressaoAditiva();
+                
+                while (['==', '!=', '<', '>', '<=', '>='].includes(this.pegaTokenAtual().valor)) {
+                    const operador = this.pegaTokenAtual().valor;
+                    const linha = this.pegaTokenAtual().linha;
+                    const coluna = this.pegaTokenAtual().coluna;
+                    this.avanca();
+                    
+                    const direita = this.analisaExpressaoAditiva();
+                    
+                    const novoNo = new NoAst('BINARY_EXPR', operador, linha, coluna);
+                    novoNo.adicionaFilho(no);
+                    novoNo.adicionaFilho(direita);
+                    no = novoNo;
+                }
+                
+                return no;
+            }
+            
+            // Analisa uma expressão
+            analisaExpressao() {
+                return this.analisaExpressaoRelacional();
+            }
+            
+            // Analisa expressão aditiva (+ e -)
+            analisaExpressaoAditiva() {
+                let no = this.analisaExpressaoMultiplicativa();
+                
+                while (this.pegaTokenAtual().valor === '+' || this.pegaTokenAtual().valor === '-') {
+                    const operador = this.pegaTokenAtual().valor;
+                    const linha = this.pegaTokenAtual().linha;
+                    const coluna = this.pegaTokenAtual().coluna;
+                    this.avanca();
+                    
+                    const direita = this.analisaExpressaoMultiplicativa();
+                    
+                    const novoNo = new NoAst('BINARY_EXPR', operador, linha, coluna);
+                    novoNo.adicionaFilho(no);
+                    novoNo.adicionaFilho(direita);
+                    no = novoNo;
+                }
+                
+                return no;
+            }
+            
+            // Analisa expressão multiplicativa (* e /)
+            analisaExpressaoMultiplicativa() {
+                let no = this.analisaExpressaoUnaria();
+                
+                while (this.pegaTokenAtual().valor === '*' || 
+                       this.pegaTokenAtual().valor === '/' || 
+                       this.pegaTokenAtual().valor === '%') {
+                    const operador = this.pegaTokenAtual().valor;
+                    const linha = this.pegaTokenAtual().linha;
+                    const coluna = this.pegaTokenAtual().coluna;
+                    this.avanca();
+                    
+                    const direita = this.analisaExpressaoUnaria();
+                    
+                    const novoNo = new NoAst('BINARY_EXPR', operador, linha, coluna);
+                    novoNo.adicionaFilho(no);
+                    novoNo.adicionaFilho(direita);
+                    no = novoNo;
+                }
+                
+                return no;
+            }
+            
+            // Analisa expressão unária (incluindo operadores de ponteiro * e &)
+            analisaExpressaoUnaria() {
+                // Operador de dereferência (* para acessar valor do ponteiro)
+                if (this.pegaTokenAtual().tipo === 'ASTERISK') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    
+                    const no = new NoAst('DEREF_EXPR', '*', token.linha, token.coluna);
+                    no.adicionaFilho(this.analisaExpressaoUnaria());
+                    return no;
+                }
+                
+                // Operador de endereço (& para obter endereço da variável)
+                if (this.pegaTokenAtual().tipo === 'AMPERSAND') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    
+                    const no = new NoAst('ADDR_EXPR', '&', token.linha, token.coluna);
+                    no.adicionaFilho(this.analisaExpressaoUnaria());
+                    return no;
+                }
+                
+                // Outros operadores unários
+                if (['+', '-', '!', '++', '--'].includes(this.pegaTokenAtual().valor)) {
+                    const operador = this.pegaTokenAtual().valor;
+                    const linha = this.pegaTokenAtual().linha;
+                    const coluna = this.pegaTokenAtual().coluna;
+                    this.avanca();
+                    
+                    const no = new NoAst('UNARY_EXPR', operador, linha, coluna);
+                    no.adicionaFilho(this.analisaExpressaoUnaria());
+                    return no;
+                }
+                
+                return this.analisaExpressaoPrimaria();
+            }
+            
+            // Analisa expressão primária (literais, identificadores, expressões parentizadas)
+            analisaExpressaoPrimaria() {
+                // Inteiros
+                if (this.pegaTokenAtual().tipo === 'INT') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    return new NoAst('INT_LITERAL', token.valor, token.linha, token.coluna);
+                }
+                
+                // Float
+                if (this.pegaTokenAtual().tipo === 'FLOAT') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    return new NoAst('FLOAT_LITERAL', token.valor, token.linha, token.coluna);
+                }
+                
+                // String
+                if (this.pegaTokenAtual().tipo === 'STRING') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    return new NoAst('STRING_LITERAL', token.valor, token.linha, token.coluna);
+                }
+                
+                // Char
+                if (this.pegaTokenAtual().tipo === 'CHAR') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    return new NoAst('CHAR_LITERAL', token.valor, token.linha, token.coluna);
+                }
+                
+                // Identificador (variável ou chamada de função)
+                if (this.pegaTokenAtual().tipo === 'IDENTIFIER') {
+                    const token = this.pegaTokenAtual();
+                    this.avanca();
+                    
+                    // Chamada de função
+                    if (this.pegaTokenAtual().valor === '(') {
+                        return this.analisaChamadaFuncao(token);
+                    }
+                    
+                    // Atribuição
+                    if (this.pegaTokenAtual().valor === '=') {
+                        this.avanca();
+                        const no = new NoAst('ASSIGN_EXPR', '=', token.linha, token.coluna);
+                        no.adicionaFilho(new NoAst('IDENTIFIER', token.valor, token.linha, token.coluna));
+                        no.adicionaFilho(this.analisaExpressao());
+                        return no;
+                    }
+                    
+                    // Identificador simples
+                    return new NoAst('IDENTIFIER', token.valor, token.linha, token.coluna);
+                }
+                
+                // Expressão parentizada
+                if (this.pegaTokenAtual().valor === '(') {
+                    this.avanca();
+                    const no = this.analisaExpressao();
+                    
+                    if (this.pegaTokenAtual().valor !== ')') {
+                        console.error(`Esperado ')', encontrado '${this.pegaTokenAtual().valor}'`);
+                    }
+                    
+                    this.avanca(); // Consome ')'
+                    return no;
+                }
+                
+                // Caso não reconhecido
+                console.error(`Expressão não reconhecida: ${this.pegaTokenAtual().tipo} - ${this.pegaTokenAtual().valor}`);
+                this.avanca();
+                return new NoAst('UNKNOWN');
+            }
+
+            // Analisa uma chamada de função
+            analisaChamadaFuncao(nomeToken) {
+                const no = new NoAst('CALL_EXPR', nomeToken.valor, nomeToken.linha, nomeToken.coluna);
+                
+                this.consume('(');
+                
+                // Parâmetros
+                if (this.pegaTokenAtual().valor !== ')') {
+                    do {
+                        no.adicionaFilho(this.analisaExpressao());
+                        
+                        if (this.pegaTokenAtual().valor === ',') {
+                            this.avanca();
+                        } else {
+                            break;
+                        }
+                    } while (true);
+                }
+                
+                this.consume(')');
+                return no;
+            }
+
+            // Analisa um if statement
+            analisaIf() {
+                const token = this.pegaTokenAtual();
+                this.avanca(); // Consome 'if'
+                
+                const no = new NoAst('IF_STMT', null, token.linha, token.coluna);
+                
+                // Verifica e consome o parêntese de abertura
+                if (this.pegaTokenAtual().valor !== '(') {
+                    console.error(`Esperado '(' após 'if', encontrado '${this.pegaTokenAtual().valor}'`);
+                } else {
+                    this.avanca(); // Consome '('
+                }
+                
+                // Analisa a condição
+                no.adicionaFilho(this.analisaExpressao());
+                
+                // Verifica e consome o parêntese de fechamento
+                if (this.pegaTokenAtual().valor !== ')') {
+                    console.error(`Esperado ')' após condição if, encontrado '${this.pegaTokenAtual().valor}'`);
+                } else {
+                    this.avanca(); // Consome ')'
+                }
+                
+                // Analisa o bloco then
+                no.adicionaFilho(this.analisaComando());
+                
+                // Verifica se existe else
+                if (this.pegaTokenAtual().tipo === 'KEYWORD' && this.pegaTokenAtual().valor === 'else') {
+                    this.avanca(); // Consome 'else'
+                    no.adicionaFilho(this.analisaComando()); // Analisa o bloco else
+                }
+                
+                return no;
+            }
+            
+            // Analisa um while statement
+            analisaWhile() {
+                const token = this.pegaTokenAtual();
+                this.avanca(); // Consome 'while'
+                
+                const no = new NoAst('WHILE_STMT', null, token.linha, token.coluna);
+                
+                this.consume('(');
+                no.adicionaFilho(this.analisaExpressao()); // Condição
+                this.consume(')');
+                
+                no.adicionaFilho(this.analisaComando()); // Corpo
+                
+                return no;
+            }
+
+            // Analisa um for statement
+            analisaFor() {
+                const token = this.pegaTokenAtual();
+                this.avanca(); // Consome 'for'
+                
+                const no = new NoAst('FOR_STMT', null, token.linha, token.coluna);
+                
+                this.consume('(');
+                
+                // Inicialização
+                if (this.pegaTokenAtual().valor !== ';') {
+                    no.adicionaFilho(this.analisaExpressao());
+                } else {
+                    no.adicionaFilho(new NoAst('EMPTY'));
+                }
+                this.consume(';');
+                
+                // Condição
+                if (this.pegaTokenAtual().valor !== ';') {
+                    no.adicionaFilho(this.analisaExpressao());
+                } else {
+                    no.adicionaFilho(new NoAst('EMPTY'));
+                }
+                this.consume(';');
+                
+                // Incremento
+                if (this.pegaTokenAtual().valor !== ')') {
+                    no.adicionaFilho(this.analisaExpressao());
+                } else {
+                    no.adicionaFilho(new NoAst('EMPTY'));
+                }
+                
+                this.consume(')');
+                
+                no.adicionaFilho(this.analisaComando()); // Corpo
+                
+                return no;
+            }
+
+            // Analisa diretiva de pré-processador
+            analisaPreprocessador() {
+                const token = this.pegaTokenAtual();
+                const diretiva = token.valor;
+                this.avanca();
+                
+                // Para #include simplificado
+                if (diretiva === 'include' && this.pegaTokenAtual().tipo === 'STRING') {
+                    const biblioteca = this.pegaTokenAtual().valor;
+                    this.avanca();
+                    
+                    const no = new NoAst('INCLUDE', biblioteca, token.linha, token.coluna);
+                    return no;
+                }
+                
+                // Pula o resto da linha de pré-processador
+                while (this.posicaoAtual < this.tokens.length && 
+                      this.pegaTokenAtual().linha === token.linha) {
+                    this.avanca();
+                }
+                
+                return new NoAst('PREPROCESSOR', diretiva, token.linha, token.coluna);
+            }
+
+            // Métodos auxiliares
+            pegaTokenAtual() {
+                if (this.posicaoAtual >= this.tokens.length) {
+                    return this.tokens[this.tokens.length - 1]; // Token EOF
+                }
+                return this.tokens[this.posicaoAtual];
+            }
+
+            avanca() {
+                if (this.posicaoAtual < this.tokens.length) {
+                    this.posicaoAtual++;
+                }
+            }
+
+            consume(valor) {
+                if (this.pegaTokenAtual().valor === valor) {
+                    this.avanca();
+                } else {
+                    console.error(`Esperado '${valor}', encontrado '${this.pegaTokenAtual().valor}'`);
+                }
+            }
+        }
+
+        // Gerenciador de memória aprimorado para ponteiros e recursividade
+        class GerenciadorMemoria {
+            constructor() {
+                // Pilha para armazenar frames de função
+                this.pilha = [];
+                
+                // Heap para simular alocação dinâmica
+                this.heap = {};
+                
+                // Próximo endereço de memória disponível na heap
+                this.proximoEnderecoHeap = 0x7fff1000;
+                
+                // Frame atual na pilha de execução
+                this.frameAtual = null;
+                
+                // Contador de endereçamento para ponteiros
+                this.contadorEndereco = 0x1000;
+                
+                // Mapa de ponteiros - relaciona endereços a variáveis
+                this.mapaPonteiros = new Map();
+                
+                // Profundidade de recursão
+                this.profundidadeRecursao = 0;
+            }
+
+            // Cria um novo frame de função quando uma função é chamada
+            criaNovoFrame(nomeFuncao, escopo, parametros = {}) {
+                const novoFrame = {
+                    id: this.pilha.length,
+                    nomeFuncao,
+                    variaveis: {},
+                    parametros: parametros,
+                    escopo,
+                    linhaRetorno: null,
+                    profundidadeRecursao: nomeFuncao === this.frameAtual?.nomeFuncao ? 
+                                          (this.frameAtual.profundidadeRecursao || 0) + 1 : 0
+                };
+                
+                this.pilha.push(novoFrame);
+                this.frameAtual = novoFrame;
+                
+                // Atualiza o contador de recursão
+                if (this.frameAtual.profundidadeRecursao > 0) {
+                    this.profundidadeRecursao = Math.max(this.profundidadeRecursao, this.frameAtual.profundidadeRecursao);
+                }
+                
+                return novoFrame;
+            }
+
+            // Remove o frame do topo da pilha quando uma função retorna
+            removeFrame() {
+                if (this.pilha.length > 0) {
+                    this.pilha.pop();
+                    this.frameAtual = this.pilha.length > 0 ? this.pilha[this.pilha.length - 1] : null;
+                }
+            }
+
+            // Adiciona uma variável ao frame atual
+            declaraVariavel(nome, tipo, valor = null, ehPonteiro = false, nivel = 0) {
+                if (!this.frameAtual) {
+                    console.error('Tentativa de declarar variável fora de um frame');
+                    return;
+                }
+
+                const endereco = this.geraEnderecoStack();
+                
+                this.frameAtual.variaveis[nome] = {
+                    tipo,
+                    valor,
+                    endereco,
+                    ehPonteiro,
+                    nivel,
+                    ponteiroPara: null
+                };
+                
+                // Se for um ponteiro inicializado, registra o que ele aponta
+                if (ehPonteiro && valor !== null) {
+                    this.atualizaPonteiroParaVariavel(nome, valor);
+                }
+                
+                return this.frameAtual.variaveis[nome];
+            }
+
+            // Obtém uma variável do escopo atual ou dos escopos superiores
+            pegaVariavel(nome) {
+                // Verifica no frame atual primeiro
+                if (this.frameAtual && this.frameAtual.variaveis[nome]) {
+                    return this.frameAtual.variaveis[nome];
+                }
+                
+                // Verifica nos parâmetros
+                if (this.frameAtual && this.frameAtual.parametros[nome]) {
+                    return this.frameAtual.parametros[nome];
+                }
+                
+                // Procura em frames anteriores (escopo global ou externo)
+                for (let i = this.pilha.length - 2; i >= 0; i--) {
+                    if (this.pilha[i].variaveis[nome]) {
+                        return this.pilha[i].variaveis[nome];
+                    }
+                }
+                
+                console.error(`Variável '${nome}' não encontrada`);
+                return null;
+            }
+
+            // Atualiza o valor de uma variável
+            atualizaVariavel(nome, valor) {
+                const variavel = this.pegaVariavel(nome);
+                if (variavel) {
+                    variavel.valor = valor;
+                    
+                    // Se for ponteiro, atualiza para o que ele aponta
+                    if (variavel.ehPonteiro) {
+                        this.atualizaPonteiroParaVariavel(nome, valor);
+                    }
+                    
+                    return true;
+                }
+                return false;
+            }
+            
+            // Registra para onde um ponteiro aponta
+            atualizaPonteiroParaVariavel(nomePonteiro, valor) {
+                const ponteiro = this.pegaVariavel(nomePonteiro);
+                if (ponteiro && ponteiro.ehPonteiro) {
+                    // Para ponteiros null
+                    if (valor === 0 || valor === null) {
+                        ponteiro.ponteiroPara = null;
+                        return;
+                    }
+                    
+                    // Para ponteiros que apontam para endereços
+                    this.mapaPonteiros.set(ponteiro.endereco, valor);
+                }
+            }
+            
+            // Obtém o valor para onde um ponteiro aponta
+            pegaValorDereferenciado(nomePonteiro) {
+                const ponteiro = this.pegaVariavel(nomePonteiro);
+                if (!ponteiro || !ponteiro.ehPonteiro) {
+                    console.error(`${nomePonteiro} não é um ponteiro válido`);
+                    return null;
+                }
+                
+                // Se o ponteiro for nulo
+                if (ponteiro.valor === 0 || ponteiro.valor === null) {
+                    console.error('Dereferência de ponteiro nulo');
+                    return null;
+                }
+                
+                // Procura o endereço na heap
+                if (this.heap[ponteiro.valor]) {
+                    return this.heap[ponteiro.valor].dados[0];
+                }
+                
+                // Procura variáveis cujo endereço corresponda ao valor do ponteiro
+                for (const frame of this.pilha) {
+                    for (const nome in frame.variaveis) {
+                        const variavel = frame.variaveis[nome];
+                        if (variavel.endereco === ponteiro.valor) {
+                            return variavel.valor;
+                        }
+                    }
+                }
+                
+                console.error(`Endereço inválido para ponteiro ${nomePonteiro}`);
+                return null;
+            }
+            
+            // Obtém o endereço de uma variável (operador &)
+            pegaEnderecoVariavel(nomeVariavel) {
+                const variavel = this.pegaVariavel(nomeVariavel);
+                if (variavel) {
+                    return variavel.endereco;
+                }
+                console.error(`Não foi possível obter endereço de ${nomeVariavel}`);
+                return null;
+            }
+
+            // Aloca memória dinâmica (simulando malloc/calloc)
+            alocaMemoria(tamanho, inicializaZero = false) {
+                const endereco = this.proximoEnderecoHeap;
+                this.proximoEnderecoHeap += tamanho;
+                
+                // Aloca um bloco na heap
+                this.heap[endereco] = {
+                    tamanho,
+                    dados: new Array(tamanho).fill(inicializaZero ? 0 : undefined),
+                    alocado: true
+                };
+                
+                return endereco;
+            }
+
+            // Libera memória (simulando free)
+            liberaMemoria(endereco) {
+                if (this.heap[endereco] && this.heap[endereco].alocado) {
+                    this.heap[endereco].alocado = false;
+                    return true;
+                }
+                console.error(`Tentativa de liberar memória não alocada no endereço ${endereco.toString(16)}`);
+                return false;
+            }
+
+            // Lê um valor da heap
+            leHeap(endereco, offset = 0) {
+                const bloco = this.heap[endereco];
+                if (bloco && bloco.alocado) {
+                    if (offset >= 0 && offset < bloco.tamanho) {
+                        return bloco.dados[offset];
+                    }
+                    console.error(`Acesso fora dos limites na heap: offset ${offset} em bloco de tamanho ${bloco.tamanho}`);
+                } else {
+                    console.error(`Tentativa de acessar memória não alocada no endereço ${endereco.toString(16)}`);
+                }
+                return undefined;
+            }
+
+            // Escreve um valor na heap
+            escreveHeap(endereco, offset, valor) {
+                const bloco = this.heap[endereco];
+                if (bloco && bloco.alocado) {
+                    if (offset >= 0 && offset < bloco.tamanho) {
+                        bloco.dados[offset] = valor;
+                        return true;
+                    }
+                    console.error(`Acesso fora dos limites na heap: offset ${offset} em bloco de tamanho ${bloco.tamanho}`);
+                } else {
+                    console.error(`Tentativa de escrever em memória não alocada no endereço ${endereco.toString(16)}`);
+                }
+                return false;
+            }
+
+            // Retorna o estado atual da pilha
+            pegaEstadoPilha() {
+                return [...this.pilha];
+            }
+
+            // Retorna o estado atual da heap
+            pegaEstadoHeap() {
+                // Cria uma cópia da heap para visualização
+                const estadoHeap = {};
+                for (const endereco in this.heap) {
+                    if (this.heap[endereco].alocado) {
+                        estadoHeap[endereco] = {
+                            ...this.heap[endereco],
+                            endereco: parseInt(endereco)
+                        };
+                    }
+                }
+                return estadoHeap;
+            }
+            
+            // Obtém mapa de ponteiros
+            pegaMapaPonteiros() {
+                return new Map(this.mapaPonteiros);
+            }
+
+            // Gera um endereço fictício para variáveis na stack
+            geraEnderecoStack() {
+                this.contadorEndereco += 8;
+                return this.contadorEndereco;
+            }
+        }
+
+        // Simulador de I/O aprimorado
+        class SimuladorIO {
+            constructor() {
+                this.entradaElement = null;
+                this.saidaElement = null;
+                this.entradaBuffer = [];
+                this.posicaoEntrada = 0;
+            }
+
+            inicializa(entradaElement, saidaElement) {
+                this.entradaElement = entradaElement;
+                this.saidaElement = saidaElement;
+                
+                // Configura o evento de entrada
+                if (this.entradaElement) {
+                    this.entradaElement.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            this.processaEntrada(this.entradaElement.value);
+                            this.entradaElement.value = '';
+                        }
+                    });
+                }
+            }
+
+            processaEntrada(texto) {
+                // Adiciona a entrada ao buffer
+                const linhas = texto.split('\n');
+                for (const linha of linhas) {
+                    this.entradaBuffer.push(linha);
+                }
+                
+                // Exibe a entrada no terminal
+                this.simulaEscritaStdout(`> ${texto}\n`);
+            }
+
+            simulaLeituraStdin() {
+                if (this.posicaoEntrada < this.entradaBuffer.length) {
+                    return this.entradaBuffer[this.posicaoEntrada++];
+                }
+                
+                // Se não houver mais entradas no buffer, solicita ao usuário
+                return null;
+            }
+
+            // Simulação da função scanf
+            simulaScanf(formato) {
+                const entrada = this.simulaLeituraStdin();
+                if (entrada === null) {
+                    this.simulaEscritaStdout("Digite um valor: ");
+                    return null; // Indicando que a entrada está pendente
+                }
+                
+                if (formato.includes('%d')) {
+                    return parseInt(entrada);
+                } else if (formato.includes('%f')) {
+                    return parseFloat(entrada);
+                } else if (formato.includes('%c')) {
+                    return entrada.charAt(0);
+                } else if (formato.includes('%s')) {
+                    return entrada;
+                }
+                
+                return entrada;
+            }
+
+            simulaEscritaStdout(texto) {
+                if (this.saidaElement) {
+                    // Processa escape sequences básicas
+                    texto = texto.replace(/\\n/g, '\n');
+                    texto = texto.replace(/\\t/g, '\t');
+                    texto = texto.replace(/\\r/g, '\r');
+                    
+                    this.saidaElement.innerHTML += texto;
+                    this.saidaElement.scrollTop = this.saidaElement.scrollHeight;
+                }
+            }
+
+            limpaTerminal() {
+                if (this.saidaElement) {
+                    this.saidaElement.innerHTML = '';
+                }
+            }
+
+            // Simulação da função printf
+            simulaPrintf(formato, ...args) {
+                let resultado = formato;
+                let argIndex = 0;
+                
+                // Substitui especificadores de formato simples
+                resultado = resultado.replace(/%d|%i|%f|%c|%s|%p/g, (match) => {
+                    if (argIndex >= args.length) return match;
+                    
+                    const arg = args[argIndex++];
+                    switch (match) {
+                        case '%d':
+                        case '%i':
+                            return Math.floor(arg).toString();
+                        case '%f':
+                            return parseFloat(arg).toString();
+                        case '%c':
+                            return String.fromCharCode(arg);
+                        case '%s':
+                            return arg.toString();
+                        case '%p':
+                            return arg ? `0x${arg.toString(16)}` : "NULL";
+                        default:
+                            return arg.toString();
+                    }
+                });
+                
+                this.simulaEscritaStdout(resultado);
+                return resultado.length;
+            }
+        }
+
+        // Registro de execução para armazenar estados
+        class RegistroExecucao {
+            constructor() {
+                this.estados = [];
+                this.posicaoAtual = -1;
+            }
+
+            registraEstado(estado) {
+                // Se estamos em um ponto intermediário, remove estados futuros
+                if (this.posicaoAtual < this.estados.length - 1) {
+                    this.estados = this.estados.slice(0, this.posicaoAtual + 1);
+                }
+                
+                this.estados.push(JSON.parse(JSON.stringify(estado)));
+                this.posicaoAtual = this.estados.length - 1;
+            }
+
+            pegaEstadoAtual() {
+                if (this.posicaoAtual >= 0 && this.posicaoAtual < this.estados.length) {
+                    return this.estados[this.posicaoAtual];
+                }
+                return null;
+            }
+
+            pegaEstadoAnterior() {
+                if (this.posicaoAtual > 0) {
+                    this.posicaoAtual--;
+                    return this.estados[this.posicaoAtual];
+                }
+                return null;
+            }
+
+            pegaProximoEstado() {
+                if (this.posicaoAtual < this.estados.length - 1) {
+                    this.posicaoAtual++;
+                    return this.estados[this.posicaoAtual];
+                }
+                return null;
+            }
+
+            limpaRegistros() {
+                this.estados = [];
+                this.posicaoAtual = -1;
+            }
+        }
+
+        // Interpretador C aprimorado para ponteiros e recursividade
+        class InterpretadorC {
+            constructor(analisadorSintatico, gerenciadorMemoria, registroExecucao, simuladorIO) {
+                this.analisadorSintatico = analisadorSintatico;
+                this.gerenciadorMemoria = gerenciadorMemoria;
+                this.registroExecucao = registroExecucao;
+                this.simuladorIO = simuladorIO;
+                
+                this.ast = null;
+                this.posicaoExecucao = 0;
+                this.noAtual = null;
+                this.emPausa = false;
+                this.finalizado = false;
+                
+                // Cache de linhas para melhorar o desempenho
+                this.mapaLinhas = new Map();
+                
+                // Valor de retorno para funções
+                this.valorRetorno = null;
+                
+                // Controle de recursão
+                this.profundidadeAtual = 0;
+                this.limiteRecursao = 100; // Limite para evitar loops infinitos
+            }
+
+            // Inicializa o interpretador com código C
+            inicializa(codigoFonte) {
+                // Análise léxica e sintática do código
+                const tokens = this.analisadorSintatico.analisadorLexico.analisaTexto(codigoFonte);
+                this.ast = this.analisadorSintatico.analisaTokens(tokens);
+                
+                // Atualiza o visualizador de tokens
+                this.exibeTokens(tokens);
+                
+                // Inicializa o mapa de linhas para facilitar a navegação
+                this.construirMapaLinhas(this.ast);
+                
+                // Reinicia o estado do interpretador
+                this.posicaoExecucao = 0;
+                this.noAtual = null;
+                this.emPausa = true;
+                this.finalizado = false;
+                this.valorRetorno = null;
+                this.profundidadeAtual = 0;
+                
+                // Limpa registros de execução anteriores
+                this.registroExecucao.limpaRegistros();
+                
+                return this.ast;
+            }
+
+            // Exibe os tokens no painel de tokens
+            exibeTokens(tokens) {
+                const container = document.getElementById('tokens-container');
+                if (!container) return;
+                
+                let html = '';
+                
+                for (const token of tokens) {
+                    if (token.tipo === 'EOF') continue;
+                    html += `[${token.tipo}:${token.valor}] `;
+                }
+                
+                container.innerHTML = html;
+            }
+
+            // Constrói um mapa das linhas do código para os nós da AST
+            construirMapaLinhas(no, linha = null) {
+                if (!no) return;
+                
+                if (no.linha) {
+                    linha = no.linha;
+                    if (!this.mapaLinhas.has(linha)) {
+                        this.mapaLinhas.set(linha, []);
+                    }
+                    this.mapaLinhas.get(linha).push(no);
+                }
+                
+                // Processa recursivamente os filhos
+                if (no.filhos) {
+                    for (const filho of no.filhos) {
+                        this.construirMapaLinhas(filho, linha);
+                    }
+                }
+            }
+
+            // Executar código passo a passo
+            executaPassoAPasso() {
+                if (!this.ast) {
+                    console.error('AST não inicializada');
+                    return;
+                }
+                
+                // Procura a função main
+                const mainNode = this.encontraMain();
+                if (!mainNode) {
+                    console.error('Função main não encontrada');
+                    this.simuladorIO.simulaEscritaStdout('Erro: Função main não encontrada\n');
+                    return;
+                }
+                
+                // Executa diretamente a função main
+                const retorno = this.executaFuncao(mainNode);
+                
+                // Registra o estado final
+                this.registraEstadoAtual();
+                
+                // Exibe valor de retorno do main
+                this.simuladorIO.simulaEscritaStdout(`\nPrograma finalizado com código de retorno: ${retorno}\n`);
+                
+                // Finaliza a execução
+                this.finalizado = true;
+            }
+
+            // Método para encontrar a função main na AST
+            encontraMain() {
+                if (!this.ast) return null;
+                
+                const buscaMain = (no) => {
+                    if (no.tipo === 'FUNCTION_DECL' && no.valor === 'main') {
+                        return no;
+                    }
+                    
+                    if (no.filhos) {
+                        for (const filho of no.filhos) {
+                            const resultado = buscaMain(filho);
+                            if (resultado) return resultado;
+                        }
+                    }
+                    
+                    return null;
+                };
+                
+                return buscaMain(this.ast);
+            }
+
+            // Método para encontrar qualquer função na AST pelo nome
+            encontraFuncao(nomeFuncao) {
+                if (!this.ast) return null;
+                
+                const buscaFuncao = (no) => {
+                    if (no.tipo === 'FUNCTION_DECL' && no.valor === nomeFuncao) {
+                        return no;
+                    }
+                    
+                    if (no.filhos) {
+                        for (const filho of no.filhos) {
+                            const resultado = buscaFuncao(filho);
+                            if (resultado) return resultado;
+                        }
+                    }
+                    
+                    return null;
+                };
+                
+                return buscaFuncao(this.ast);
+            }
+
+            // Executa um nó específico da AST
+            executaNo(no) {
+                if (!no) return null;
+                
+                console.log(`Executando nó: ${no.tipo} - ${no.valor || 'null'}`);
+                
+                switch (no.tipo) {
+                    case 'FUNCTION_DECL':
+                        // Para funções, não faz nada aqui - serão executadas quando chamadas
+                        return null;
+                    case 'COMPOUND_STMT':
+                        // Para um bloco de comandos, cada filho deve ser executado em sequência
+                        let resultadoUltimaInstrucao = null;
+                        if (no.filhos && no.filhos.length > 0) {
+                            for (const filho of no.filhos) {
+                                resultadoUltimaInstrucao = this.executaNo(filho);
+                                
+                                // Se encontrou um return, interrompe a execução do bloco
+                                if (this.valorRetorno !== null) {
+                                    break;
+                                }
+                            }
+                        }
+                        return resultadoUltimaInstrucao;
+                    case 'VAR_DECL':
+                        return this.executaDeclaracaoVariavel(no);
+                    case 'ASSIGN_EXPR':
+                        return this.executaAtribuicao(no);
+                    case 'BINARY_EXPR':
+                        return this.avaliaBinariaExpr(no);
+                    case 'UNARY_EXPR':
+                        return this.avaliaUnariaExpr(no);
+                    case 'ADDR_EXPR': // Operador &
+                        return this.avaliaOperadorEndereco(no);
+                    case 'DEREF_EXPR': // Operador *
+                        return this.avaliaOperadorDereferencia(no);
+                    case 'INT_LITERAL':
+                        return parseInt(no.valor);
+                    case 'FLOAT_LITERAL':
+                        return parseFloat(no.valor);
+                    case 'STRING_LITERAL':
+                        return no.valor;
+                    case 'CHAR_LITERAL':
+                        return no.valor.charCodeAt(0);
+                    case 'IDENTIFIER':
+                        const variavel = this.gerenciadorMemoria.pegaVariavel(no.valor);
+                        if (!variavel) {
+                            console.error(`Variável '${no.valor}' não encontrada`);
+                            return null;
+                        }
+                        return variavel.valor;
+                    case 'CALL_EXPR':
+                        return this.executaChamadaFuncao(no);
+                    case 'IF_STMT':
+                        return this.executaIfStmt(no);
+                    case 'WHILE_STMT':
+                        return this.executaWhileStmt(no);
+                    case 'FOR_STMT':
+                        return this.executaForStmt(no);
+                    case 'RETURN_STMT':
+                        return this.executaReturnStmt(no);
+                    default:
+                        console.log(`Tipo de nó não tratado em executaNo: ${no.tipo}`);
+                        return null;
+                }
+            }
+
+            // Executa uma declaração de variável
+            executaDeclaracaoVariavel(no) {
+                const nome = no.valor;
+                const tipo = no.tipoVariavel;
+                const ehPonteiro = no.ehPonteiro;
+                const nivel = no.nivel || 0;
+                
+                // Verifica se há inicialização
+                let valorInicial = null;
+                if (no.filhos && no.filhos.length > 0) {
+                    // Avalia a expressão de inicialização
+                    valorInicial = this.avaliaExpressao(no.filhos[0]);
+                }
+                
+                // Declara a variável na memória
+                return this.gerenciadorMemoria.declaraVariavel(nome, tipo, valorInicial, ehPonteiro, nivel);
+            }
+
+            // Executa uma expressão de atribuição
+            executaAtribuicao(no) {
+                if (no.filhos.length < 2) {
+                    console.error('Atribuição mal formada');
+                    return null;
+                }
+                
+                const identificador = no.filhos[0];
+                
+                if (identificador.tipo === 'IDENTIFIER') {
+                    const nomeVariavel = identificador.valor;
+                    const valor = this.avaliaExpressao(no.filhos[1]);
+                    
+                    // Atualiza o valor na memória
+                    this.gerenciadorMemoria.atualizaVariavel(nomeVariavel, valor);
+                    return valor;
+                } else if (identificador.tipo === 'DEREF_EXPR') {
+                    // Atribuição com dereferência
+                    // Ex: *ptr = 10;
+                    const ponteiro = this.avaliaExpressao(identificador.filhos[0]);
+                    const valor = this.avaliaExpressao(no.filhos[1]);
+                    
+                    // Atualiza o valor no endereço para onde o ponteiro aponta
+                    // Esta versão simplificada só funciona para ponteiros simples
+                    // Em um interpretador completo, precisaríamos tratar arrays e structs
+                    if (this.gerenciadorMemoria.heap[ponteiro]) {
+                        this.gerenciadorMemoria.escreveHeap(ponteiro, 0, valor);
+                    } else {
+                        console.error(`Erro de segmentação: não foi possível escrever no endereço ${ponteiro}`);
+                    }
+                    
+                    return valor;
+                }
+                
+                console.error('Lado esquerdo inválido em atribuição');
+                return null;
+            }
+
+            // Avalia uma expressão e retorna seu valor
+            avaliaExpressao(no) {
+                return this.executaNo(no);
+            }
+
+            // Avalia uma expressão binária
+            avaliaBinariaExpr(no) {
+                if (!no.filhos || no.filhos.length < 2) {
+                    console.error('Expressão binária mal formada - faltam operandos');
+                    return null;
+                }
+                
+                const esquerda = this.avaliaExpressao(no.filhos[0]);
+                const direita = this.avaliaExpressao(no.filhos[1]);
+                const operador = no.valor;
+                
+                console.log(`Avaliando expressão binária: ${esquerda} ${operador} ${direita}`);
+                
+                switch (operador) {
+                    case '+': return esquerda + direita;
+                    case '-': return esquerda - direita;
+                    case '*': return esquerda * direita;
+                    case '/': return direita !== 0 ? esquerda / direita : null;
+                    case '%': return direita !== 0 ? esquerda % direita : null;
+                    case '==': return esquerda === direita;
+                    case '!=': return esquerda !== direita;
+                    case '<': return esquerda < direita;
+                    case '>': return esquerda > direita;
+                    case '<=': return esquerda <= direita;
+                    case '>=': return esquerda >= direita;
+                    case '&&': return esquerda && direita;
+                    case '||': return esquerda || direita;
+                    default:
+                        console.error(`Operador binário não suportado: ${operador}`);
+                        return null;
+                }
+            }
+            
+            // Avalia uma expressão unária
+            avaliaUnariaExpr(no) {
+                if (!no.filhos || no.filhos.length === 0) {
+                    console.error('Expressão unária mal formada - falta operando');
+                    return null;
+                }
+                
+                const operando = this.avaliaExpressao(no.filhos[0]);
+                const operador = no.valor;
+                
+                switch (operador) {
+                    case '+': return +operando;
+                    case '-': return -operando;
+                    case '!': return !operando;
+                    case '++': {
+                        // Incremento pré-fixado
+                        if (no.filhos[0].tipo === 'IDENTIFIER') {
+                            const variavel = this.gerenciadorMemoria.pegaVariavel(no.filhos[0].valor);
+                            if (variavel) {
+                                variavel.valor++;
+                                return variavel.valor;
+                            }
+                        }
+                        console.error('Operador ++ só pode ser aplicado a uma variável');
+                        return null;
+                    }
+                    case '--': {
+                        // Decremento pré-fixado
+                        if (no.filhos[0].tipo === 'IDENTIFIER') {
+                            const variavel = this.gerenciadorMemoria.pegaVariavel(no.filhos[0].valor);
+                            if (variavel) {
+                                variavel.valor--;
+                                return variavel.valor;
+                            }
+                        }
+                        console.error('Operador -- só pode ser aplicado a uma variável');
+                        return null;
+                    }
+                    default:
+                        console.error(`Operador unário não suportado: ${operador}`);
+                        return null;
+                }
+            }
+            
+            // Avalia o operador de endereço (&)
+            avaliaOperadorEndereco(no) {
+                if (!no.filhos || no.filhos.length === 0) {
+                    console.error('Operador & mal formado - falta operando');
+                    return null;
+                }
+                
+                const operando = no.filhos[0];
+                
+                if (operando.tipo !== 'IDENTIFIER') {
+                    console.error('Operador & só pode ser aplicado a variáveis');
+                    return null;
+                }
+                
+                const nomeVariavel = operando.valor;
+                return this.gerenciadorMemoria.pegaEnderecoVariavel(nomeVariavel);
+            }
+            
+            // Avalia o operador de dereferência (*)
+            avaliaOperadorDereferencia(no) {
+                if (!no.filhos || no.filhos.length === 0) {
+                    console.error('Operador * mal formado - falta operando');
+                    return null;
+                }
+                
+                // Primeiro avalia o ponteiro
+                const ponteiro = this.avaliaExpressao(no.filhos[0]);
+                
+                // Verifica se é um ponteiro válido
+                if (ponteiro === 0 || ponteiro === null) {
+                    console.error('Dereferência de ponteiro nulo');
+                    return null;
+                }
+                
+                // Obtém o valor armazenado no endereço apontado
+                if (no.filhos[0].tipo === 'IDENTIFIER') {
+                    return this.gerenciadorMemoria.pegaValorDereferenciado(no.filhos[0].valor);
+                } else {
+                    // Caso seja um ponteiro calculado por outra expressão
+                    return this.gerenciadorMemoria.leHeap(ponteiro, 0);
+                }
+            }
+
+            // Executa uma chamada de função
+            executaChamadaFuncao(no) {
+                const nomeFuncao = no.valor;
+                
+                // Avalia os argumentos
+                const args = [];
+                for (const argNo of no.filhos) {
+                    args.push(this.avaliaExpressao(argNo));
+                }
+                
+                // Tratamento especial para funções de biblioteca padrão
+                if (nomeFuncao === 'printf') {
+                    return this.simuladorIO.simulaPrintf(args[0], ...args.slice(1));
+                }
+                
+                if (nomeFuncao === 'scanf') {
+                    return this.simuladorIO.simulaScanf(args[0], ...args.slice(1));
+                }
+                
+                if (nomeFuncao === 'malloc') {
+                    const tamanho = args[0];
+                    return this.gerenciadorMemoria.alocaMemoria(tamanho);
+                }
+                
+                if (nomeFuncao === 'calloc') {
+                    const numElementos = args[0];
+                    const tamanhoElemento = args[1];
+                    return this.gerenciadorMemoria.alocaMemoria(numElementos * tamanhoElemento, true);
+                }
+                
+                if (nomeFuncao === 'free') {
+                    const endereco = args[0];
+                    return this.gerenciadorMemoria.liberaMemoria(endereco);
+                }
+                
+                // Para funções definidas pelo usuário
+                // Encontra a definição da função
+                const funcaoNo = this.encontraFuncao(nomeFuncao);
+                if (!funcaoNo) {
+                    console.error(`Função não definida: ${nomeFuncao}`);
+                    return null;
+                }
+                
+                // Verifica profundidade de recursão para evitar stack overflow
+                this.profundidadeAtual++;
+                if (this.profundidadeAtual > this.limiteRecursao) {
+                    console.error(`Limite de recursão excedido (${this.limiteRecursao})`);
+                    this.simuladorIO.simulaEscritaStdout(`Erro: Limite de recursão excedido (${this.limiteRecursao})\n`);
+                    this.profundidadeAtual--;
+                    return null;
+                }
+                
+                // Executa a função
+                const resultado = this.executaFuncao(funcaoNo, args);
+                this.profundidadeAtual--;
+                
+                return resultado;
+            }
+            
+            // Executa uma função definida pelo usuário
+            executaFuncao(funcaoNo, argumentos = []) {
+                if (funcaoNo.tipo !== 'FUNCTION_DECL') {
+                    console.error('Nó não é uma definição de função');
+                    return null;
+                }
+                
+                const nomeFuncao = funcaoNo.valor;
+                console.log(`Executando função: ${nomeFuncao}`);
+                
+                // Prepara os parâmetros
+                const parametros = {};
+                const paramsNode = funcaoNo.filhos.find(filho => filho.tipo === 'PARAMS');
+                
+                if (paramsNode && argumentos.length > 0) {
+                    // Associa os valores passados aos parâmetros da função
+                    for (let i = 0; i < paramsNode.filhos.length && i < argumentos.length; i++) {
+                        const paramNo = paramsNode.filhos[i];
+                        parametros[paramNo.valor] = {
+                            tipo: paramNo.tipoVariavel,
+                            valor: argumentos[i],
+                            endereco: this.gerenciadorMemoria.contadorEndereco += 8,
+                            ehPonteiro: paramNo.ehPonteiro,
+                            nivel: paramNo.nivel || 0
+                        };
+                    }
+                }
+                
+                // Cria um novo frame para a função
+                this.gerenciadorMemoria.criaNovoFrame(nomeFuncao, 'function', parametros);
+                
+                // Reseta o valor de retorno
+                this.valorRetorno = null;
+                
+                // Encontra o corpo da função
+                const corpoFuncao = funcaoNo.filhos.find(filho => filho.tipo === 'COMPOUND_STMT');
+                
+                // Executa o corpo da função
+                if (corpoFuncao) {
+                    this.executaNo(corpoFuncao);
+                }
+                
+                // Obtém o valor de retorno
+                const resultado = this.valorRetorno;
+                
+                // Remove o frame da função
+                this.gerenciadorMemoria.removeFrame();
+                
+                // Reseta o valor de retorno para futuras funções
+                this.valorRetorno = null;
+                
+                return resultado;
+            }
+
+            // Executa um comando if
+            executaIfStmt(no) {
+                if (!no.filhos || no.filhos.length < 2) {
+                    console.error('Comando if mal formado - faltam filhos');
+                    return null;
+                }
+                
+                // Avalia a condição (primeiro filho)
+                const condicao = this.avaliaExpressao(no.filhos[0]);
+                console.log(`Condição avaliada como: ${condicao}`);
+                
+                if (condicao) {
+                    // Executa o bloco 'then' (segundo filho)
+                    return this.executaNo(no.filhos[1]);
+                } else if (no.filhos.length > 2) {
+                    // Executa o bloco 'else' (terceiro filho) se existir
+                    return this.executaNo(no.filhos[2]);
+                }
+                
+                return null;
+            }
+            
+            // Executa um comando while
+            executaWhileStmt(no) {
+                if (!no.filhos || no.filhos.length < 2) {
+                    console.error('Comando while mal formado - faltam filhos');
+                    return null;
+                }
+                
+                let resultado = null;
+                let iteracoes = 0;
+                const limiteIteracoes = 10000; // Limite para evitar loops infinitos
+                
+                // Executa enquanto a condição for verdadeira
+                while (true) {
+                    // Avalia a condição (primeiro filho)
+                    const condicao = this.avaliaExpressao(no.filhos[0]);
+                    
+                    if (!condicao) break;
+                    
+                    // Executa o corpo do while (segundo filho)
+                    resultado = this.executaNo(no.filhos[1]);
+                    
+                    // Se encontrou um return, interrompe o loop
+                    if (this.valorRetorno !== null) {
+                        break;
+                    }
+                    
+                    // Evita loops infinitos
+                    iteracoes++;
+                    if (iteracoes > limiteIteracoes) {
+                        console.error(`Limite de iterações excedido (${limiteIteracoes})`);
+                        this.simuladorIO.simulaEscritaStdout(`Erro: Possível loop infinito detectado\n`);
+                        break;
+                    }
+                }
+                
+                return resultado;
+            }
+            
+            // Executa um comando for
+            executaForStmt(no) {
+                if (!no.filhos || no.filhos.length < 4) {
+                    console.error('Comando for mal formado - faltam filhos');
+                    return null;
+                }
+                
+                let resultado = null;
+                let iteracoes = 0;
+                const limiteIteracoes = 10000; // Limite para evitar loops infinitos
+                
+                // Executa a inicialização (primeiro filho)
+                if (no.filhos[0].tipo !== 'EMPTY') {
+                    this.avaliaExpressao(no.filhos[0]);
+                }
+                
+                // Loop principal
+                while (true) {
+                    // Avalia a condição (segundo filho)
+                    if (no.filhos[1].tipo !== 'EMPTY') {
+                        const condicao = this.avaliaExpressao(no.filhos[1]);
+                        if (!condicao) break;
+                    }
+                    
+                    // Executa o corpo do for (quarto filho)
+                    resultado = this.executaNo(no.filhos[3]);
+                    
+                    // Se encontrou um return, interrompe o loop
+                    if (this.valorRetorno !== null) {
+                        break;
+                    }
+                    
+                    // Executa o incremento (terceiro filho)
+                    if (no.filhos[2].tipo !== 'EMPTY') {
+                        this.avaliaExpressao(no.filhos[2]);
+                    }
+                    
+                    // Evita loops infinitos
+                    iteracoes++;
+                    if (iteracoes > limiteIteracoes) {
+                        console.error(`Limite de iterações excedido (${limiteIteracoes})`);
+                        this.simuladorIO.simulaEscritaStdout(`Erro: Possível loop infinito detectado\n`);
+                        break;
+                    }
+                }
+                
+                return resultado;
+            }
+            
+            // Executa o comando return
+            executaReturnStmt(no) {
+                // Se o comando return tiver uma expressão
+                if (no.filhos && no.filhos.length > 0) {
+                    this.valorRetorno = this.avaliaExpressao(no.filhos[0]);
+                } else {
+                    this.valorRetorno = 0; // Return vazio (return;) retorna 0 em C
+                }
+                
+                return this.valorRetorno;
+            }
+            
+            // Registra o estado atual da execução
+            registraEstadoAtual() {
+                const estado = {
+                    pilha: this.gerenciadorMemoria.pegaEstadoPilha(),
+                    heap: this.gerenciadorMemoria.pegaEstadoHeap(),
+                    ponteirosPara: this.gerenciadorMemoria.pegaMapaPonteiros(),
+                    profundidadeRecursao: this.gerenciadorMemoria.profundidadeRecursao,
+                    noAtual: this.noAtual ? {
+                        tipo: this.noAtual.tipo,
+                        valor: this.noAtual.valor,
+                        linha: this.noAtual.linha,
+                        coluna: this.noAtual.coluna
+                    } : null
+                };
+                
+                this.registroExecucao.registraEstado(estado);
+                
+                // Atualiza a visualização
+                this.atualizaVisualizacaoMemoria(estado);
+            }
+            
+            // Atualiza a visualização da memória na interface
+            atualizaVisualizacaoMemoria(estado) {
+                // Atualiza stack
+                const stackContainer = document.getElementById('stack-container');
+                if (stackContainer) {
+                    let html = '';
+                    for (const frame of estado.pilha) {
+                        html += `<div class="stack-item">`;
+                        html += `<strong>Função: ${frame.nomeFuncao}</strong>`;
+                        
+                        // Se for recursão, mostra o nível
+                        if (frame.profundidadeRecursao > 0) {
+                            html += ` <span class="badge bg-info">Recursão nível ${frame.profundidadeRecursao}</span>`;
+                        }
+                        
+                        html += `<div class="mt-2">`;
+                        
+                        // Parâmetros
+                        if (Object.keys(frame.parametros).length > 0) {
+                            html += `<div><strong>Parâmetros:</strong></div>`;
+                            for (const [nome, param] of Object.entries(frame.parametros)) {
+                                let valorExibido = param.valor;
+                                
+                                // Formatação especial para ponteiros
+                                if (param.ehPonteiro) {
+                                    valorExibido = param.valor !== null ? `0x${param.valor.toString(16)}` : "NULL";
+                                    html += `<div>${param.tipo}${'*'.repeat(param.nivel)} ${nome} = <span class="pointer-value">${valorExibido}</span></div>`;
+                                } else {
+                                    html += `<div>${param.tipo} ${nome} = ${valorExibido}</div>`;
+                                }
+                            }
+                        }
+                        
+                        // Variáveis locais
+                        if (Object.keys(frame.variaveis).length > 0) {
+                            html += `<div class="mt-1"><strong>Variáveis locais:</strong></div>`;
+                            for (const [nome, variavel] of Object.entries(frame.variaveis)) {
+                                let valorExibido = variavel.valor;
+                                
+                                // Formatação especial para ponteiros
+                                if (variavel.ehPonteiro) {
+                                    valorExibido = variavel.valor !== null ? `0x${variavel.valor.toString(16)}` : "NULL";
+                                    html += `<div>${variavel.tipo}${'*'.repeat(variavel.nivel)} ${nome} = <span class="pointer-value">${valorExibido}</span></div>`;
+                                } else {
+                                    html += `<div>${variavel.tipo} ${nome} = ${valorExibido}</div>`;
+                                }
+                            }
+                        }
+                        
+                        html += `</div></div>`;
+                    }
+                    
+                    stackContainer.innerHTML = html;
+                }
+                
+                // Atualiza heap
+                const heapContainer = document.getElementById('heap-container');
+                if (heapContainer) {
+                    let html = '';
+                    const heap = estado.heap;
+                    
+                    if (Object.keys(heap).length === 0) {
+                        html = '<div class="text-muted">Nenhuma memória alocada na heap.</div>';
+                    } else {
+                        for (const endereco in heap) {
+                            const bloco = heap[endereco];
+                            html += `<div class="heap-item">`;
+                            html += `<strong>Endereço: 0x${parseInt(endereco).toString(16)}</strong>`;
+                            html += ` <span class="badge bg-secondary">Tamanho: ${bloco.tamanho} bytes</span>`;
+                            html += `<div class="mt-1">`;
+                            
+                            // Mostra dados do bloco
+                            if (bloco.dados && bloco.dados.length > 0) {
+                                let dadosStr = '';
+                                for (let i = 0; i < bloco.dados.length && i < 10; i++) {
+                                    const valor = bloco.dados[i];
+                                    if (valor !== undefined) {
+                                        dadosStr += `[${i}]: ${valor}, `;
+                                    }
+                                }
+                                
+                                if (bloco.dados.length > 10) {
+                                    dadosStr += '...';
+                                }
+                                
+                                html += `<div>Dados: ${dadosStr || 'vazio'}</div>`;
+                            }
+                            
+                            html += `</div></div>`;
+                        }
+                    }
+                    
+                    heapContainer.innerHTML = html;
+                }
+                
+                // Atualiza visualização de ponteiros
+                const pointerContainer = document.getElementById('pointer-container');
+                if (pointerContainer) {
+                    let html = '';
+                    const ponteiros = estado.ponteirosPara;
+                    
+                    if (ponteiros.size === 0) {
+                        html = '<div class="text-muted">Nenhum ponteiro ativo.</div>';
+                    } else {
+                        html += '<div class="mt-2">';
+                        for (const [enderecoPtr, enderecoAlvo] of ponteiros.entries()) {
+                            html += `<div class="mb-2">`;
+                            html += `<span class="pointer-value">0x${enderecoPtr.toString(16)}</span>`;
+                            html += ` <span class="pointer-arrow">→</span> `;
+                            html += `<span class="pointer-value">0x${enderecoAlvo.toString(16)}</span>`;
+                            
+                            // Tenta encontrar o nome da variável que tem esse endereço
+                            let nomeVariavel = this.encontraNomeVariavelPorEndereco(enderecoPtr);
+                            let nomeAlvo = this.encontraNomeVariavelPorEndereco(enderecoAlvo);
+                            
+                            if (nomeVariavel || nomeAlvo) {
+                                html += ` (${nomeVariavel || '?'} → ${nomeAlvo || '?'})`;
+                            }
+                            
+                            html += `</div>`;
+                        }
+                        html += '</div>';
+                    }
+                    
+                    pointerContainer.innerHTML = html;
+                }
+                
+                // Atualiza a visualização da AST
+                this.exibeAst(this.ast);
+                
+                // Destaca a linha atual do código
+                this.destacaLinhaAtual();
+            }
+            
+            // Encontra o nome de uma variável pelo seu endereço de memória
+            encontraNomeVariavelPorEndereco(endereco) {
+                for (const frame of this.gerenciadorMemoria.pilha) {
+                    // Verifica variáveis locais
+                    for (const [nome, variavel] of Object.entries(frame.variaveis)) {
+                        if (variavel.endereco === endereco) {
+                            return nome;
+                        }
+                    }
+                    
+                    // Verifica parâmetros
+                    for (const [nome, variavel] of Object.entries(frame.parametros)) {
+                        if (variavel.endereco === endereco) {
+                            return nome;
+                        }
+                    }
+                }
+                
+                return null;
+            }
+            
+            // Exibe a AST na interface
+            exibeAst(no, nivel = 0) {
+                if (!no) return '';
+                
+                const container = document.getElementById('ast-container');
+                if (!container) return;
+                
+                const geraHtmlAst = (no, nivel = 0) => {
+                    let html = '';
+                    const indentacao = '  '.repeat(nivel);
+                    
+                    let valorStr = no.valor !== null ? ` (${no.valor})` : '';
+                    html += `<div class="ast-node">${indentacao}${no.tipo}${valorStr}</div>`;
+                    
+                    if (no.filhos && no.filhos.length > 0) {
+                        for (const filho of no.filhos) {
+                            html += geraHtmlAst(filho, nivel + 1);
+                        }
+                    }
+                    
+                    return html;
+                };
+                
+                container.innerHTML = geraHtmlAst(no);
+            }
+            
+            // Destaca a linha atual do código no editor
+            destacaLinhaAtual() {
+                if (!this.noAtual || !this.noAtual.linha) return;
+                
+                const linhaAtual = this.noAtual.linha;
+                
+                // Remove qualquer destaque anterior
+                editor.getAllMarks().forEach(mark => mark.clear());
+                
+                // Adiciona destaque na linha atual
+                const lineHandle = editor.getLineHandle(linhaAtual - 1);
+                if (lineHandle) {
+                    editor.markText(
+                        {line: linhaAtual - 1, ch: 0},
+                        {line: linhaAtual - 1, ch: lineHandle.text.length},
+                        {className: 'highlighted-line'}
+                    );
+                    
+                    // Rola para a linha destacada
+                    editor.scrollIntoView({line: linhaAtual - 1, ch: 0}, 100);
+                }
+            }
+        }
+        
+        // Inicialização e código da interface
+        let editor; 
+        let analisadorLexico;
+        let analisadorSintatico;
+        let gerenciadorMemoria;
+        let registroExecucao;
+        let simuladorIO;
+        let interpretadorC;
+
+        // Arquivos de exemplo
+        const arquivosExemplo = {
+            'main.c': `#include <stdio.h>
+
+int main() {
+    printf("Olá, mundo!\\n");
+    return 0;
+}`,
+            'recursivo.c': `#include <stdio.h>
+
+int fatorial(int n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * fatorial(n - 1);
+}
+
+int main() {
+    int num = 5;
+    printf("Fatorial de %d = %d\\n", num, fatorial(num));
+    return 0;
+}`,
+            'ponteiros.c': `#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int *ptr = &x;
+    
+    printf("Valor de x: %d\\n", x);
+    printf("Endereço de x: %p\\n", &x);
+    printf("Valor de ptr: %p\\n", ptr);
+    printf("Valor apontado por ptr: %d\\n", *ptr);
+    
+    *ptr = 20;
+    printf("Novo valor de x: %d\\n", x);
+    
+    return 0;
+}`,
+            'combinado.c': `#include <stdio.h>
+#include <stdlib.h>
+
+void imprimeLista(int *lista, int tamanho) {
+    printf("Lista: ");
+    for (int i = 0; i < tamanho; i++) {
+        printf("%d ", lista[i]);
+    }
+    printf("\\n");
+}
+
+void ordenaLista(int *lista, int inicio, int fim) {
+    if (inicio >= fim) return;
+    
+    int pivo = lista[fim];
+    int i = inicio - 1;
+    
+    for (int j = inicio; j < fim; j++) {
+        if (lista[j] <= pivo) {
+            i++;
+            // Troca lista[i] e lista[j]
+            int temp = lista[i];
+            lista[i] = lista[j];
+            lista[j] = temp;
+        }
+    }
+    
+    // Troca lista[i+1] e lista[fim]
+    int temp = lista[i + 1];
+    lista[i + 1] = lista[fim];
+    lista[fim] = temp;
+    
+    int particao = i + 1;
+    
+    ordenaLista(lista, inicio, particao - 1);
+    ordenaLista(lista, particao + 1, fim);
+}
+
+int main() {
+    int tamanho = 8;
+    int *lista = (int*)malloc(tamanho * sizeof(int));
+    
+    lista[0] = 64;
+    lista[1] = 34;
+    lista[2] = 25;
+    lista[3] = 12;
+    lista[4] = 22;
+    lista[5] = 11;
+    lista[6] = 90;
+    lista[7] = 50;
+    
+    printf("Lista original:\\n");
+    imprimeLista(lista, tamanho);
+    
+    ordenaLista(lista, 0, tamanho - 1);
+    
+    printf("Lista ordenada:\\n");
+    imprimeLista(lista, tamanho);
+    
+    free(lista);
+    return 0;
+}`
+        };
+
+        // Inicializa a aplicação
+        function inicializaAplicacao() {
+            // Inicializa o editor de código
+            editor = CodeMirror(document.getElementById('editor-conteudo'), {
+                mode: 'text/x-csrc',
+                theme: 'dracula',
+                lineNumbers: true,
+                matchBrackets: true,
+                indentUnit: 4,
+                tabSize: 4,
+                indentWithTabs: true,
+                smartIndent: true,
+                electricChars: true,
+                autofocus: true
+            });
+            
+            // Inicializa componentes
+            analisadorLexico = new AnalisadorLexico();
+            analisadorSintatico = new AnalisadorSintatico(analisadorLexico);
+            gerenciadorMemoria = new GerenciadorMemoria();
+            registroExecucao = new RegistroExecucao();
+            simuladorIO = new SimuladorIO();
+            
+            // Inicializa simulador de I/O
+            simuladorIO.inicializa(
+                document.getElementById('entrada-conteudo'),
+                document.getElementById('saida-conteudo')
+            );
+            
+            // Cria o interpretador
+            interpretadorC = new InterpretadorC(
+                analisadorSintatico,
+                gerenciadorMemoria,
+                registroExecucao,
+                simuladorIO
+            );
+            
+            // Configura eventos dos botões
+            document.getElementById('botao-executar').addEventListener('click', executarCodigo);
+            document.getElementById('botao-anterior').addEventListener('click', passoAnterior);
+            document.getElementById('botao-proximo').addEventListener('click', proximoPasso);
+            document.getElementById('botao-reiniciar').addEventListener('click', reiniciarExecucao);
+            
+            // Configura seleção de arquivos
+            document.querySelectorAll('.item-arquivo').forEach(item => {
+                item.addEventListener('click', () => {
+                    const arquivo = item.getAttribute('data-arquivo');
+                    carregarArquivo(arquivo);
+                    
+                    // Atualiza a classe active
+                    document.querySelectorAll('.item-arquivo').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    item.classList.add('active');
+                });
+            });
+            
+            // Carrega o arquivo inicial
+            carregarArquivo('recursivo.c');
+        }
+
+        // Carrega um arquivo de exemplo no editor
+        function carregarArquivo(nomeArquivo) {
+            if (arquivosExemplo[nomeArquivo]) {
+                editor.setValue(arquivosExemplo[nomeArquivo]);
+                limparEstadoExecucao();
+            }
+        }
+
+        // Executa o código atual
+        function executarCodigo() {
+            limparEstadoExecucao();
+            
+            const codigoFonte = editor.getValue();
+            interpretadorC.inicializa(codigoFonte);
+            
+            try {
+                // Executa passo a passo
+                interpretadorC.executaPassoAPasso();
+            } catch (erro) {
+                console.error('Erro na execução:', erro);
+                simuladorIO.simulaEscritaStdout(`\nErro na execução: ${erro.message}\n`);
+            }
+        }
+
+        // Executa um passo para trás
+        function passoAnterior() {
+            const estadoAnterior = registroExecucao.pegaEstadoAnterior();
+            if (estadoAnterior) {
+                atualizaEstadoVisual(estadoAnterior);
+            }
+        }
+
+        // Executa o próximo passo
+        function proximoPasso() {
+            const proximoEstado = registroExecucao.pegaProximoEstado();
+            if (proximoEstado) {
+                atualizaEstadoVisual(proximoEstado);
+            } else if (!interpretadorC.finalizado) {
+                // Executa mais um passo
+                try {
+                    // Na versão completa, executaria apenas um único passo
+                    interpretadorC.executaPassoAPasso();
+                } catch (erro) {
+                    console.error('Erro na execução:', erro);
+                    simuladorIO.simulaEscritaStdout(`\nErro na execução: ${erro.message}\n`);
+                }
+            }
+        }
+
+        // Reinicia a execução
+        function reiniciarExecucao() {
+            limparEstadoExecucao();
+            
+            // Remove destaques do editor
+            editor.getAllMarks().forEach(mark => mark.clear());
+        }
+
+        // Limpa o estado de execução
+        function limparEstadoExecucao() {
+            gerenciadorMemoria = new GerenciadorMemoria();
+            registroExecucao.limpaRegistros();
+            simuladorIO.limpaTerminal();
+            
+            // Limpa visualizações
+            document.getElementById('stack-container').innerHTML = '';
+            document.getElementById('heap-container').innerHTML = '';
+            document.getElementById('pointer-container').innerHTML = '';
+            document.getElementById('tokens-container').innerHTML = '';
+            document.getElementById('ast-container').innerHTML = '';
+            
+            // Cria um novo interpretador
+            interpretadorC = new InterpretadorC(
+                analisadorSintatico,
+                gerenciadorMemoria,
+                registroExecucao,
+                simuladorIO
+            );
+        }
+
+        // Atualiza a visualização com base em um estado
+        function atualizaEstadoVisual(estado) {
+            interpretadorC.atualizaVisualizacaoMemoria(estado);
+        }
+
+        // Inicializa a aplicação quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', inicializaAplicacao);
+    </script>
+</body>
+</html>

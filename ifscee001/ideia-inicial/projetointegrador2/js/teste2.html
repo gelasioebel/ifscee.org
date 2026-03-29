@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSCEE - Testador de Componentes</title>
+    <style>
+        /* Estilos gerais */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        header p {
+            margin: 0.5rem 0 0;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 1rem;
+            padding: 1rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .painel {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+
+        .painel-titulo {
+            background-color: #3498db;
+            color: white;
+            padding: 0.5rem 1rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .painel-conteudo {
+            padding: 1rem;
+            max-height: 400px;
+            overflow: auto;
+        }
+
+        .io-container {
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+        }
+
+        .areaSaida {
+            flex-grow: 1;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow: auto;
+            min-height: 300px;
+        }
+
+        .areaEntrada {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .botoes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-gap: 0.5rem;
+            padding: 1rem;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .botao-primario {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .botao-secundario {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .botao-perigo {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .botao-primario:hover { background-color: #27ae60; }
+        .botao-secundario:hover { background-color: #2980b9; }
+        .botao-perigo:hover { background-color: #c0392b; }
+
+        /* Estilos específicos para componentes */
+        .tabelaTokens {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .tabelaTokens th, .tabelaTokens td {
+            border: 1px solid #ddd;
+            padding: 6px 8px;
+            text-align: left;
+        }
+
+        .tabelaTokens th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .tabelaTokens tr:nth-child(even) {
+            background-color: #f8f8f8;
+        }
+
+        .tabelaTokens tr:hover {
+            background-color: #e9f7fe;
+        }
+
+        .token-keyword { color: #0000ff; }
+        .token-identifier { color: #000000; }
+        .token-int_literal, .token-float_literal { color: #0066cc; }
+        .token-string_literal, .token-char_literal { color: #008800; }
+        .token-punctuator { color: #666666; }
+        .token-comment { color: #888888; font-style: italic; }
+        .token-error { color: #ff0000; font-weight: bold; }
+
+        .arvoreAst {
+            font-family: monospace;
+            font-size: 0.9rem;
+            overflow: auto;
+        }
+
+        .noAst {
+            margin: 2px 0;
+            padding-left: 20px;
+            border-left: 1px solid #ccc;
+        }
+
+        .cabecalhoNoAst {
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .filhosNoAst {
+            margin-left: 20px;
+        }
+
+        .com-erro {
+            border-color: #e74c3c !important;
+            background-color: #ffeeee !important;
+            animation: piscar 0.5s 3;
+        }
+
+        @keyframes piscar {
+            0%, 100% { background-color: #ffeeee; }
+            50% { background-color: #ffbbbb; }
+        }
+
+        .infoHeap, .infoPilha {
+            border: 1px solid #ddd;
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .frameContainer, .blocoHeap {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+
+        .cabecalhoFrame, .cabecalhoBloco {
+            background-color: #f0f0f0;
+            padding: 0.5rem;
+            font-weight: bold;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .variaveisFrame, .infoBloco {
+            padding: 0.5rem;
+        }
+
+        .variavelItem, .parametroItem {
+            font-family: monospace;
+            margin: 0.25rem 0;
+            padding: 0.25rem;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .tituloSecao {
+            font-weight: bold;
+            margin: 0.5rem 0 0.25rem;
+            color: #555;
+        }
+
+        .estatisticasHeap {
+            background-color: #eaf2f8;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .variavelGlobal {
+            font-family: monospace;
+            margin: 0.25rem 0;
+            padding: 0.25rem;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+        }
+
+        .mensagemVazia {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 2rem 0;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            background-color: #f5f5f5;
+        }
+
+        .tab {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        .tab.ativo {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+
+        #statusContainer {
+            margin: 1rem;
+            padding: 0.8rem;
+            background-color: #e8f7f0;
+            border-radius: 4px;
+            min-height: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        #editorCodeArea {
+            width: 100%;
+            height: 300px;
+            font-family: monospace;
+            resize: none;
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            box-sizing: border-box;
+        }
+
+        .linha-atual {
+            background-color: #ffffcc !important;
+        }
+
+        .linha-destacada {
+            background-color: #e6f7ff !important;
+        }
+
+        .breakpoint {
+            background-color: #ffdddd;
+        }
+
+        .info-execucao {
+            color: #999;
+            font-style: italic;
+            text-align: center;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>IFSCEE - Testador de Componentes</h1>
+    <p>Ferramenta para testar cada componente do Interpretador C</p>
+</header>
+
+<div class="botoes">
+    <!-- Botões Originais -->
+    <button id="btnExecutar" class="botao-primario">▶ Executar</button>
+    <button id="btnPassoAnterior" class="botao-secundario">⏮ Passo Anterior</button>
+    <button id="btnProximoPasso" class="botao-secundario">⏭ Próximo Passo</button>
+    <button id="btnReiniciar" class="botao-perigo">⟲ Reiniciar</button>
+
+    <!-- Botões para testar componentes específicos -->
+    <button id="btnAnalisarLexico" class="botao-secundario">Analisar Léxico</button>
+    <button id="btnAnalisarSintatico" class="botao-secundario">Analisar Sintático</button>
+    <button id="btnSimularMemoria" class="botao-secundario">Simular Memória</button>
+    <button id="btnSimularIO" class="botao-secundario">Simular I/O</button>
+
+    <!-- Botões adicionais para componentes individuais -->
+    <button id="btnTestarGerenciadorMemoria" class="botao-secundario">Testar Gerenciador de Memória</button>
+    <button id="btnTestarToken" class="botao-secundario">Testar Tokens</button>
+    <button id="btnTestarNoAST" class="botao-secundario">Testar Nós AST</button>
+    <button id="btnVisualizarAST" class="botao-secundario">Visualizar AST</button>
+    <button id="btnTestarRegistroExecucao" class="botao-secundario">Testar Registro de Execução</button>
+    <button id="btnCarregarExemplo" class="botao-secundario">Carregar Exemplo</button>
+    <button id="btnExportarLog" class="botao-secundario">Exportar Log</button>
+</div>
+
+<div class="container">
+    <div class="painel editor">
+        <div class="painel-titulo">
+            <span>Editor de Código</span>
+        </div>
+        <div class="painel-conteudo" id="editorConteudo">
+            <textarea id="editorCodeArea" placeholder="Digite seu código C aqui..."></textarea>
+        </div>
+    </div>
+
+    <div class="painel">
+        <div class="painel-titulo">Saída do Programa</div>
+        <div class="io-container">
+            <pre class="areaSaida" id="saidaPrograma"></pre>
+            <input type="text" class="areaEntrada" id="entradaPrograma" placeholder="Digite aqui para entrada..." disabled>
+        </div>
+    </div>
+
+    <div class="painel">
+        <div class="painel-titulo">Tokens</div>
+        <div class="painel-conteudo" id="tokensConteudo"></div>
+    </div>
+
+    <div class="painel">
+        <div class="painel-titulo">Árvore Sintática (AST)</div>
+        <div class="painel-conteudo" id="astConteudo"></div>
+    </div>
+
+    <div class="painel">
+        <div class="tabs">
+            <div class="tab ativo" data-tab="pilha">Pilha</div>
+            <div class="tab" data-tab="heap">Heap</div>
+            <div class="tab" data-tab="estatisticas">Estatísticas</div>
+        </div>
+        <div class="painel-conteudo" id="pilhaConteudo">
+            <div class="info-execucao">Execute o programa para ver o estado da pilha.</div>
+        </div>
+        <div class="painel-conteudo" id="heapConteudo" style="display: none;">
+            <div class="info-execucao">Execute o programa para ver o estado da heap.</div>
+        </div>
+        <div class="painel-conteudo" id="estatisticasConteudo" style="display: none;">
+            <div class="info-execucao">Execute o programa para ver estatísticas de execução.</div>
+        </div>
+    </div>
+
+    <div class="painel">
+        <div class="painel-titulo">Log de Componentes</div>
+        <div class="painel-conteudo" id="logConteudo">
+            <pre id="logArea" style="white-space: pre-wrap; margin: 0;"></pre>
+        </div>
+    </div>
+</div>
+
+<div id="statusContainer"></div>
+
+<script type="module">
+    import Token from './token.js';
+    import NoAST from './noAst.js';
+    import AnalisadorLexico from './analisadorLexico.js';
+    import AnalisadorSintatico from './analisadorSintatico.js';
+    import GerenciadorMemoria from './gerenciadorMemoria.js';
+    import SimuladorIO from './simuladorIO.js';
+    import RegistroExecucao from './registroExecucao.js';
+    import InterpretadorC from './interpretadorC.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Estado da aplicação
+        const estado = {
+            codigoFonte: '',
+            tokens: [],
+            ast: null,
+            emExecucao: false,
+            pausado: false,
+
+            // Componentes
+            analisadorLexico: null,
+            analisadorSintatico: null,
+            gerenciadorMemoria: null,
+            simuladorIO: null,
+            registroExecucao: null,
+            interpretadorC: null
+        };
+
+        // Inicializar componentes
+        function inicializarComponentes() {
+            // Gerenciador de memória
+            estado.gerenciadorMemoria = new GerenciadorMemoria({
+                detectarVazamentos: true,
+                validarAcessos: true
+            });
+
+            // Simulador de I/O
+            estado.simuladorIO = new SimuladorIO({
+                gerenciadorMemoria: estado.gerenciadorMemoria
+            });
+
+            // Configurar I/O com elementos da UI
+            estado.simuladorIO.defineElementosUI(
+                document.getElementById('entradaPrograma'),
+                document.getElementById('saidaPrograma')
+            );
+
+            // Registro de execução
+            estado.registroExecucao = new RegistroExecucao({
+                tamanhoMaximoHistorico: 1000,
+                registrarHistorico: true
+            });
+
+            // Analisador léxico
+            estado.analisadorLexico = new AnalisadorLexico({
+                versaoC: 'C17',
+                preservaComentarios: true
+            });
+
+            // Analisador sintático
+            estado.analisadorSintatico = new AnalisadorSintatico(
+                estado.analisadorLexico,
+                {
+                    versaoC: 'C17',
+                    modoEstrito: false
+                }
+            );
+
+            // Interpretador
+            estado.interpretadorC = new InterpretadorC(
+                estado.gerenciadorMemoria,
+                estado.simuladorIO,
+                estado.registroExecucao
+            );
+
+            adicionarLog('Componentes inicializados com sucesso.');
+        }
+
+        // Carregar o código do editor
+        function carregarCodigo() {
+            estado.codigoFonte = document.getElementById('editorCodeArea').value;
+            return estado.codigoFonte;
+        }
+
+        // Atualizar o código no editor
+        function atualizarCodigo(codigo) {
+            document.getElementById('editorCodeArea').value = codigo;
+            estado.codigoFonte = codigo;
+        }
+
+        // Adicionar ao log
+        function adicionarLog(mensagem) {
+            const logArea = document.getElementById('logArea');
+            const timestamp = new Date().toLocaleTimeString();
+            logArea.textContent += `[${timestamp}] ${mensagem}\n`;
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // Mostrar status
+        function mostrarStatus(mensagem, tipo = 'info') {
+            const statusContainer = document.getElementById('statusContainer');
+            statusContainer.textContent = mensagem;
+
+            // Estilo com base no tipo
+            statusContainer.style.backgroundColor = (tipo === 'erro') ? '#ffebee' :
+                (tipo === 'aviso') ? '#fff8e1' : '#e8f7f0';
+
+            // Resetar após alguns segundos para mensagens de sucesso
+            if (tipo === 'info') {
+                setTimeout(() => {
+                    statusContainer.textContent = '';
+                    statusContainer.style.backgroundColor = '#e8f7f0';
+                }, 5000);
+            }
+        }
+
+        // Função para testar o analisador léxico
+        function testarAnalisadorLexico() {
+            try {
+                carregarCodigo();
+
+                if (!estado.codigoFonte.trim()) {
+                    mostrarStatus('Digite algum código para analisar.', 'aviso');
+                    return;
+                }
+
+                // Realizar análise léxica
+                estado.tokens = estado.analisadorLexico.analisaTexto(estado.codigoFonte, 'teste.c');
+
+                // Exibir tokens na UI
+                atualizarVisualizacaoTokens();
+
+                adicionarLog(`Análise léxica concluída: ${estado.tokens.length} tokens encontrados.`);
+                mostrarStatus(`Análise léxica concluída: ${estado.tokens.length} tokens encontrados.`);
+            } catch (erro) {
+                adicionarLog(`Erro na análise léxica: ${erro.message}`);
+                mostrarStatus(`Erro na análise léxica: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar o analisador sintático
+        function testarAnalisadorSintatico() {
+            try {
+                // Verificar se já temos tokens
+                if (!estado.tokens || estado.tokens.length === 0) {
+                    testarAnalisadorLexico();
+                }
+
+                if (!estado.tokens || estado.tokens.length === 0) {
+                    return;
+                }
+
+                // Realizar análise sintática
+                estado.ast = estado.analisadorSintatico.analisaTokens(estado.tokens);
+
+                // Exibir AST na UI
+                atualizarVisualizacaoAST();
+
+                adicionarLog('Análise sintática concluída com sucesso.');
+                mostrarStatus('Análise sintática concluída com sucesso.');
+            } catch (erro) {
+                adicionarLog(`Erro na análise sintática: ${erro.message}`);
+                mostrarStatus(`Erro na análise sintática: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar o gerenciador de memória
+        function testarGerenciadorMemoria() {
+            try {
+                // Limpar estado anterior
+                estado.gerenciadorMemoria.reiniciar();
+
+                // Realizar algumas operações de memória para demonstração
+                // 1. Declarar variáveis globais
+                const varGlobalInt = estado.gerenciadorMemoria.declaraVariavelGlobal('numeroGlobal', {
+                    tipo: 'int',
+                    valorInicial: 42
+                });
+
+                const varGlobalArray = estado.gerenciadorMemoria.declaraVariavelGlobal('arrayGlobal', {
+                    tipo: 'int',
+                    valorInicial: [10, 20, 30, 40, 50],
+                    ehArray: true,
+                    dimensoes: [5]
+                });
+
+                // 2. Criar um frame de função
+                estado.gerenciadorMemoria.criaNovoFrame('minhaFuncao', 'global');
+
+                // 3. Adicionar parâmetros
+                estado.gerenciadorMemoria.adicionaParametro('parametro1', {
+                    valor: 100,
+                    tipo: 'int'
+                });
+
+                // 4. Declarar variáveis locais
+                estado.gerenciadorMemoria.declaraVariavel('varLocal', {
+                    tipo: 'int',
+                    valorInicial: 200
+                });
+
+                // 5. Alocar memória na heap
+                const ptr1 = estado.gerenciadorMemoria.alocaMemoria(40, false, {
+                    origem: 'testeHeap',
+                    linha: 1
+                });
+
+                const ptr2 = estado.gerenciadorMemoria.alocaMemoria(100, true, {
+                    origem: 'testeHeap',
+                    linha: 2
+                });
+
+                // 6. Escrever na memória alocada
+                estado.gerenciadorMemoria.escreveHeap(ptr1, 0, 123);
+                estado.gerenciadorMemoria.escreveHeap(ptr1, 4, 456);
+
+                // 7. Liberar um dos ponteiros
+                estado.gerenciadorMemoria.liberaMemoria(ptr1);
+
+                // 8. Atualizar uma variável
+                estado.gerenciadorMemoria.atualizaVariavel('varLocal', 999);
+
+                // Atualizar visualização da memória
+                atualizarVisualizacaoPilha();
+                atualizarVisualizacaoHeap();
+
+                adicionarLog('Teste do gerenciador de memória concluído.');
+                mostrarStatus('Teste do gerenciador de memória concluído.');
+            } catch (erro) {
+                adicionarLog(`Erro no teste do gerenciador de memória: ${erro.message}`);
+                mostrarStatus(`Erro no teste do gerenciador de memória: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar o simulador de I/O
+        function testarSimuladorIO() {
+            try {
+                // Limpar saída anterior
+                estado.simuladorIO.limpaBuffers();
+
+                // Testar saída
+                estado.simuladorIO.adicionaSaida("=== Teste do Simulador de I/O ===\n");
+
+                // Testar printf
+                estado.simuladorIO.printf("Inteiro: %d\n", 42);
+                estado.simuladorIO.printf("Float: %.2f\n", 3.14159);
+                estado.simuladorIO.printf("String: %s\n", "Olá, mundo!");
+                estado.simuladorIO.printf("Vários tipos: %d, %.2f, %s\n", 100, 2.718, "teste");
+
+                // Testar puts
+                estado.simuladorIO.puts("Esta linha foi escrita com puts");
+
+                // Testar putchar
+                estado.simuladorIO.adicionaSaida("\nTestando putchar: ");
+                for (let i = 65; i < 75; i++) {
+                    estado.simuladorIO.putchar(i);
+                }
+                estado.simuladorIO.adicionaSaida("\n");
+
+                // Habilitar entrada
+                estado.simuladorIO.adicionaSaida("\nDigite algo e pressione Enter para testar gets/scanf.\n");
+                estado.simuladorIO.entradaPendente = true;
+                estado.simuladorIO.atualizaUI();
+
+                adicionarLog('Teste do simulador de I/O concluído.');
+                mostrarStatus('Teste do simulador de I/O concluído. Aguardando entrada...');
+            } catch (erro) {
+                adicionarLog(`Erro no teste do simulador de I/O: ${erro.message}`);
+                mostrarStatus(`Erro no teste do simulador de I/O: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar tokens
+        function testarToken() {
+            try {
+                estado.simuladorIO.limpaBuffers();
+
+                // Criar tokens de exemplo para demonstração
+                const tokens = [
+                    new Token(Token.TIPOS.KEYWORD, 'int', 1, 1, 'teste.c'),
+                    new Token(Token.TIPOS.IDENTIFIER, 'main', 1, 5, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, '(', 1, 9, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, ')', 1, 10, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, '{', 1, 12, 'teste.c'),
+                    new Token(Token.TIPOS.KEYWORD, 'int', 2, 5, 'teste.c'),
+                    new Token(Token.TIPOS.IDENTIFIER, 'x', 2, 9, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, '=', 2, 11, 'teste.c'),
+                    new Token(Token.TIPOS.INT_LITERAL, '42', 2, 13, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, ';', 2, 15, 'teste.c'),
+                    new Token(Token.TIPOS.KEYWORD, 'return', 3, 5, 'teste.c'),
+                    new Token(Token.TIPOS.INT_LITERAL, '0', 3, 12, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, ';', 3, 13, 'teste.c'),
+                    new Token(Token.TIPOS.PUNCTUATOR, '}', 4, 1, 'teste.c')
+                ];
+
+                // Exibir informações sobre os tokens
+                estado.simuladorIO.adicionaSaida("=== Teste de Tokens ===\n\n");
+                estado.simuladorIO.adicionaSaida("Código exemplificado:\n");
+                estado.simuladorIO.adicionaSaida("int main() {\n    int x = 42;\n    return 0;\n}\n\n");
+
+                estado.simuladorIO.adicionaSaida("Tokens gerados:\n");
+                tokens.forEach(token => {
+                    estado.simuladorIO.adicionaSaida(`${token.toString()}\n`);
+                });
+
+                // Verificações de propriedades
+                estado.simuladorIO.adicionaSaida("\nVerificações de propriedades:\n");
+                estado.simuladorIO.adicionaSaida(`'int' é palavra-chave? ${tokens[0].ehPalavraChave('int')}\n`);
+                estado.simuladorIO.adicionaSaida(`'main' é identificador? ${tokens[1].ehIdentificador}\n`);
+                estado.simuladorIO.adicionaSaida(`'42' é literal? ${tokens[8].ehLiteral}\n`);
+                estado.simuladorIO.adicionaSaida(`'int' é tipo primitivo? ${tokens[0].ehTipoPrimitivo}\n`);
+
+                // Verificar palavras-chave disponíveis
+                estado.simuladorIO.adicionaSaida("\nPalavras-chave C17 disponíveis:\n");
+                const todasPalavrasChave = [
+                    ...Token.KEYWORDS.C90,
+                    ...Token.KEYWORDS.C99,
+                    ...Token.KEYWORDS.C11
+                ].sort();
+
+                // Mostrar em formato de grid
+                let linhaKeywords = "";
+                todasPalavrasChave.forEach((keyword, idx) => {
+                    linhaKeywords += keyword.padEnd(12);
+                    if ((idx + 1) % 6 === 0) {
+                        estado.simuladorIO.adicionaSaida(linhaKeywords + "\n");
+                        linhaKeywords = "";
+                    }
+                });
+
+                if (linhaKeywords) {
+                    estado.simuladorIO.adicionaSaida(linhaKeywords + "\n");
+                }
+
+                adicionarLog('Teste de tokens concluído.');
+                mostrarStatus('Teste de tokens concluído.');
+            } catch (erro) {
+                adicionarLog(`Erro no teste de tokens: ${erro.message}`);
+                mostrarStatus(`Erro no teste de tokens: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar nós AST
+        function testarNoAST() {
+            try {
+                estado.simuladorIO.limpaBuffers();
+
+                // Criar uma AST de exemplo para um programa simples
+                const raiz = new NoAST('TRANSLATION_UNIT', '', 1, 1);
+
+                // Função main
+                const funcaoMain = new NoAST('FUNCTION_DEF', 'main', 1, 1);
+
+                // Tipo de retorno (int)
+                const tipoRetorno = new NoAST('TYPE_SPECIFIER', 'int', 1, 1);
+                funcaoMain.adicionaFilho(tipoRetorno);
+
+                // Lista de parâmetros (vazia)
+                const parametros = new NoAST('PARAMETER_LIST', '', 1, 9);
+                funcaoMain.adicionaFilho(parametros);
+
+                // Corpo da função
+                const corpo = new NoAST('COMPOUND_STMT', '', 1, 12);
+
+                // Declaração da variável x
+                const declX = new NoAST('DECLARATION', '', 2, 5);
+                const tipoInt = new NoAST('TYPE_SPECIFIER', 'int', 2, 5);
+                declX.adicionaFilho(tipoInt);
+
+                const varX = new NoAST('VAR_DECL', 'x', 2, 9);
+                varX.adicionaPropriedade('tipo', 'int');
+
+                const valorInicial = new NoAST('INT_LITERAL', '42', 2, 13);
+                varX.adicionaFilho(valorInicial);
+
+                declX.adicionaFilho(varX);
+                corpo.adicionaFilho(declX);
+
+                // Instrução return
+                const retorno = new NoAST('RETURN_STMT', '', 3, 5);
+                const valorRetorno = new NoAST('INT_LITERAL', '0', 3, 12);
+                retorno.adicionaFilho(valorRetorno);
+                corpo.adicionaFilho(retorno);
+
+                funcaoMain.adicionaFilho(corpo);
+                raiz.adicionaFilho(funcaoMain);
+
+                // Mostrar AST
+                estado.simuladorIO.adicionaSaida("=== Teste de Nós AST ===\n\n");
+                estado.simuladorIO.adicionaSaida("AST para o programa:\n");
+                estado.simuladorIO.adicionaSaida("int main() {\n    int x = 42;\n    return 0;\n}\n\n");
+
+                estado.simuladorIO.adicionaSaida("Representação da árvore:\n");
+                estado.simuladorIO.adicionaSaida(raiz.toString());
+
+                // Estatísticas da árvore
+                estado.simuladorIO.adicionaSaida("\nEstatísticas da árvore:\n");
+                estado.simuladorIO.adicionaSaida(`Total de nós: ${raiz.tamanhoSubarvore()}\n`);
+                estado.simuladorIO.adicionaSaida(`Altura da árvore: ${raiz.alturaSubarvore()}\n`);
+
+                // Encontrar um nó específico
+                const nodeLiteral = raiz.encontra(no => no.tipo === 'INT_LITERAL' && no.valor === '42');
+                if (nodeLiteral) {
+                    estado.simuladorIO.adicionaSaida(`\nNó do literal '42' encontrado na linha ${nodeLiteral.linha}, coluna ${nodeLiteral.coluna}\n`);
+                }
+
+                adicionarLog('Teste de nós AST concluído.');
+                mostrarStatus('Teste de nós AST concluído.');
+            } catch (erro) {
+                adicionarLog(`Erro no teste de nós AST: ${erro.message}`);
+                mostrarStatus(`Erro no teste de nós AST: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para testar o registro de execução
+        function testarRegistroExecucao() {
+            try {
+                // Reiniciar o registro
+                estado.registroExecucao.limpaHistorico();
+
+                // Iniciar uma nova sessão
+                estado.registroExecucao.iniciaExecucao({
+                    nomePrograma: 'Programa de Teste',
+                    arquivoAtual: 'teste.c'
+                });
+
+                estado.simuladorIO.limpaBuffers();
+                estado.simuladorIO.adicionaSaida("=== Teste do Registro de Execução ===\n\n");
+
+                // Registrar alguns estados
+                estado.simuladorIO.adicionaSaida("Registrando estados de execução...\n");
+
+                // Registrar 5 estados
+                for (let i = 1; i <= 5; i++) {
+                    const estado = {
+                        linha: i,
+                        coluna: 1,
+                        escopo: 'main',
+                        instrucao: i % 2 === 0 ? 'DECLARATION' : 'EXPR_STMT',
+                        variaveis: {
+                            contador: i
+                        }
+                    };
+
+                    estado.registroExecucao.registraEstado(estado);
+                    estado.simuladorIO.adicionaSaida(`Estado ${i} registrado: linha ${i}, instrução ${estado.instrucao}\n`);
+                }
+
+                // Adicionar um breakpoint
+                estado.registroExecucao.adicionaBreakpoint(3);
+                estado.simuladorIO.adicionaSaida("\nBreakpoint adicionado na linha 3\n");
+
+                // Navegar pelo histórico
+                estado.simuladorIO.adicionaSaida("\nTestando navegação pelo histórico:\n");
+
+                // Voltar para estado anterior
+                const estadoAnterior = estado.registroExecucao.retrocede();
+                estado.simuladorIO.adicionaSaida(`Voltou para estado anterior: linha ${estadoAnterior.linha}\n`);
+
+                // Avançar para próximo estado
+                const proximoEstado = estado.registroExecucao.avanca();
+                estado.simuladorIO.adicionaSaida(`Avançou para próximo estado: linha ${proximoEstado.linha}\n`);
+
+                // Ir para um estado específico
+                const estadoEspecifico = estado.registroExecucao.vaiParaEstado(1);
+                estado.simuladorIO.adicionaSaida(`Foi para estado específico: linha ${estadoEspecifico.linha}\n`);
+
+                // Finalizar execução
+                const resultado = estado.registroExecucao.finalizaExecucao({
+                    codigoSaida: 0,
+                    terminouComErro: false
+                });
+
+                // Mostrar estatísticas
+                estado.simuladorIO.adicionaSaida("\nEstatísticas de execução:\n");
+                const estatisticas = estado.registroExecucao.pegaEstatisticas();
+                estado.simuladorIO.adicionaSaida(`Total de passos: ${estatisticas.totalPassos}\n`);
+                estado.simuladorIO.adicionaSaida(`Total de estados: ${estatisticas.totalEstados}\n`);
+                estado.simuladorIO.adicionaSaida(`Tempo de execução: ${estatisticas.tempoExecucao}ms\n`);
+
+                adicionarLog('Teste do registro de execução concluído.');
+                mostrarStatus('Teste do registro de execução concluído.');
+            } catch (erro) {
+                adicionarLog(`Erro no teste do registro de execução: ${erro.message}`);
+                mostrarStatus(`Erro no teste do registro de execução: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para visualizar AST em formato mais amigável
+        function visualizarAST() {
+            try {
+                // Verificar se há uma AST
+                if (!estado.ast) {
+                    // Tentar gerar a AST
+                    testarAnalisadorSintatico();
+
+                    if (!estado.ast) {
+                        mostrarStatus('Não há AST para visualizar. Analise o código primeiro.', 'aviso');
+                        return;
+                    }
+                }
+
+                // Limpar saída
+                estado.simuladorIO.limpaBuffers();
+
+                // Exibir informações sobre a AST
+                estado.simuladorIO.adicionaSaida("=== Visualização da AST ===\n\n");
+
+                // Criar uma função para gerar a representação visual da AST
+                function gerarVisualizacaoAST(no, nivel = 0) {
+                    const indentacao = "│  ".repeat(nivel);
+                    const ultimoFilho = no.filhos.length === 0;
+
+                    let resultado = `${indentacao}${ultimoFilho ? "└─ " : "├─ "}${no.tipo}`;
+
+                    if (no.valor) {
+                        resultado += `: "${no.valor}"`;
+                    }
+
+                    resultado += ` [linha ${no.linha}, coluna ${no.coluna}]`;
+
+                    // Adicionar propriedades relevantes
+                    const propriedades = [];
+                    if (no.temPropriedade('tipo')) propriedades.push(`tipo=${no.pegaPropriedade('tipo')}`);
+                    if (no.temPropriedade('ponteiros')) propriedades.push(`ponteiros=${no.pegaPropriedade('ponteiros')}`);
+                    if (no.temPropriedade('ehArray')) propriedades.push('ehArray=true');
+
+                    if (propriedades.length > 0) {
+                        resultado += ` (${propriedades.join(', ')})`;
+                    }
+
+                    resultado += "\n";
+
+                    // Recursivamente adicionar os filhos
+                    for (let i = 0; i < no.filhos.length; i++) {
+                        resultado += gerarVisualizacaoAST(no.filhos[i], nivel + 1);
+                    }
+
+                    return resultado;
+                }
+
+                // Gerar e exibir a visualização
+                const visualizacao = gerarVisualizacaoAST(estado.ast);
+                estado.simuladorIO.adicionaSaida(visualizacao);
+
+                // Estatísticas da AST
+                estado.simuladorIO.adicionaSaida("\nEstatísticas da AST:\n");
+                estado.simuladorIO.adicionaSaida(`Total de nós: ${estado.ast.tamanhoSubarvore()}\n`);
+                estado.simuladorIO.adicionaSaida(`Altura da árvore: ${estado.ast.alturaSubarvore()}\n`);
+
+                // Tipos de nós presentes
+                const tiposDeNo = new Map();
+                estado.ast.percorreProfundidade(no => {
+                    tiposDeNo.set(no.tipo, (tiposDeNo.get(no.tipo) || 0) + 1);
+                });
+
+                estado.simuladorIO.adicionaSaida("\nDistribuição de tipos de nós:\n");
+                Array.from(tiposDeNo.entries())
+                    .sort((a, b) => b[1] - a[1])
+                    .forEach(([tipo, contagem]) => {
+                        estado.simuladorIO.adicionaSaida(`${tipo}: ${contagem}\n`);
+                    });
+
+                adicionarLog('Visualização da AST concluída.');
+                mostrarStatus('Visualização da AST concluída.');
+            } catch (erro) {
+                adicionarLog(`Erro na visualização da AST: ${erro.message}`);
+                mostrarStatus(`Erro na visualização da AST: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para carregar exemplo de código
+        function carregarExemplo() {
+            const exemploCodigo = `/* Exemplo de código C com várias funcionalidades */
+#include <stdio.h>
+
+// Definição de constante
+#define MAX 100
+
+// Declaração de função
+int soma(int a, int b);
+
+// Variável global
+int contador = 0;
+
+// Função principal
+int main() {
+    // Declaração de variáveis
+    int numeros[MAX];
+    int i, total = 0;
+
+    // Inicialização do array
+    for (i = 0; i < 10; i++) {
+        numeros[i] = i * 2;
+        contador++;
+    }
+
+    // Uso de condicionais
+    if (contador > 5) {
+        printf("Contador maior que 5: %d\\n", contador);
+    } else {
+        printf("Contador menor ou igual a 5: %d\\n", contador);
+    }
+
+    // Uso de loop while
+    i = 0;
+    while (i < 10) {
+        total = soma(total, numeros[i]);
+        i++;
+    }
+
+    // Exibição de resultado
+    printf("Total: %d\\n", total);
+
+    return 0;
+}
+
+// Implementação da função soma
+int soma(int a, int b) {
+    return a + b;
+}`;
+
+            atualizarCodigo(exemploCodigo);
+            adicionarLog('Exemplo de código carregado.');
+            mostrarStatus('Exemplo de código carregado.');
+        }
+
+        // Função para exportar log
+        function exportarLog() {
+            const log = document.getElementById('logArea').textContent;
+            const blob = new Blob([log], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ifscee_log_' + new Date().toISOString().replace(/[:.]/g, '-') + '.txt';
+            a.click();
+
+            URL.revokeObjectURL(url);
+
+            mostrarStatus('Log exportado com sucesso.');
+        }
+
+        // Função para executar o programa
+        function executarCodigo() {
+            try {
+                // Verificar se há uma AST
+                if (!estado.ast) {
+                    // Tentar gerar a AST
+                    testarAnalisadorSintatico();
+
+                    if (!estado.ast) {
+                        mostrarStatus('Não há AST para executar. Analise o código primeiro.', 'aviso');
+                        return;
+                    }
+                }
+
+                // Limpar saída e reiniciar componentes
+                estado.simuladorIO.limpaBuffers();
+                estado.gerenciadorMemoria.reiniciar();
+                estado.registroExecucao.limpaHistorico();
+
+                // Inicializar interpretador
+                estado.interpretadorC.inicializa(estado.ast);
+
+                // Iniciar registro de execução
+                estado.registroExecucao.iniciaExecucao({
+                    nomePrograma: 'Programa C',
+                    arquivoAtual: 'teste.c'
+                });
+
+                // Executar o programa
+                const resultado = estado.interpretadorC.executar();
+
+                // Finalizar registro de execução
+                estado.registroExecucao.finalizaExecucao({
+                    codigoSaida: resultado.resultado || 0,
+                    terminouComErro: false
+                });
+
+                // Atualizar UI
+                atualizarVisualizacaoPilha();
+                atualizarVisualizacaoHeap();
+
+                adicionarLog(`Execução concluída. Resultado: ${resultado.resultado}`);
+                mostrarStatus(`Execução concluída. Passos: ${resultado.passos}`);
+            } catch (erro) {
+                adicionarLog(`Erro na execução: ${erro.message}`);
+                mostrarStatus(`Erro na execução: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para executar o próximo passo
+        function proximoPasso() {
+            try {
+                // Verificar se há uma AST
+                if (!estado.ast) {
+                    mostrarStatus('Não há AST para executar. Analise o código primeiro.', 'aviso');
+                    return;
+                }
+
+                // Se não iniciou execução ainda, inicializar
+                if (!estado.emExecucao) {
+                    // Reiniciar componentes
+                    estado.gerenciadorMemoria.reiniciar();
+                    estado.registroExecucao.limpaHistorico();
+
+                    // Inicializar interpretador
+                    estado.interpretadorC.inicializa(estado.ast);
+
+                    // Iniciar registro de execução
+                    estado.registroExecucao.iniciaExecucao({
+                        nomePrograma: 'Programa C',
+                        arquivoAtual: 'teste.c'
+                    });
+
+                    estado.emExecucao = true;
+                    estado.pausado = true;
+                }
+
+                // Executar próximo passo
+                const resultado = estado.interpretadorC.proximoPasso();
+
+                // Verificar se finalizou
+                if (resultado && resultado.finalizado) {
+                    // Finalizar registro de execução
+                    estado.registroExecucao.finalizaExecucao({
+                        codigoSaida: resultado.resultado || 0,
+                        terminouComErro: false
+                    });
+
+                    // Resetar estado
+                    estado.emExecucao = false;
+                    estado.pausado = false;
+
+                    mostrarStatus("Execução concluída com sucesso.");
+                } else {
+                    // Atualizar UI para o passo atual
+                    const linha = resultado ? resultado.linha : null;
+                    if (linha) {
+                        destacarLinha(linha);
+                    }
+
+                    mostrarStatus(`Passo ${resultado.passo} executado. Linha ${linha}.`);
+                }
+
+                // Atualizar visualização da memória
+                atualizarVisualizacaoPilha();
+                atualizarVisualizacaoHeap();
+            } catch (erro) {
+                adicionarLog(`Erro ao executar passo: ${erro.message}`);
+                mostrarStatus(`Erro ao executar passo: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para executar o passo anterior
+        function passoAnterior() {
+            try {
+                // Verificar se temos estados anteriores
+                if (!estado.registroExecucao.temEstadoAnterior()) {
+                    mostrarStatus("Não há estados anteriores disponíveis.", 'aviso');
+                    return;
+                }
+
+                // Obter o estado anterior
+                const estadoAnterior = estado.registroExecucao.retrocede();
+
+                // Destacar a linha correspondente
+                if (estadoAnterior && estadoAnterior.linha) {
+                    destacarLinha(estadoAnterior.linha);
+                }
+
+                // Atualizar UI para o estado anterior
+                mostrarStatus(`Voltou para estado anterior. Linha ${estadoAnterior.linha}.`);
+            } catch (erro) {
+                adicionarLog(`Erro ao retroceder passo: ${erro.message}`);
+                mostrarStatus(`Erro ao retroceder passo: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para reiniciar a execução
+        function reiniciarExecucao() {
+            try {
+                // Resetar estado de execução
+                estado.emExecucao = false;
+                estado.pausado = false;
+
+                // Reiniciar componentes
+                estado.gerenciadorMemoria.reiniciar();
+                estado.simuladorIO.limpaBuffers();
+                estado.registroExecucao.limpaHistorico();
+
+                // Limpar UI
+                atualizarVisualizacaoPilha();
+                atualizarVisualizacaoHeap();
+                removerDestaques();
+
+                adicionarLog('Execução reiniciada.');
+                mostrarStatus('Execução reiniciada.');
+            } catch (erro) {
+                adicionarLog(`Erro ao reiniciar: ${erro.message}`);
+                mostrarStatus(`Erro ao reiniciar: ${erro.message}`, 'erro');
+            }
+        }
+
+        // Função para atualizar a visualização de tokens
+        function atualizarVisualizacaoTokens() {
+            const container = document.getElementById('tokensConteudo');
+            container.innerHTML = '';
+
+            // Verificar se há tokens
+            if (!estado.tokens || estado.tokens.length === 0) {
+                container.textContent = 'Não há tokens para exibir.';
+                return;
+            }
+
+            // Criar tabela de tokens
+            const tabela = document.createElement('table');
+            tabela.className = 'tabelaTokens';
+
+            // Cabeçalho da tabela
+            const cabecalho = document.createElement('thead');
+            cabecalho.innerHTML = `
+                <tr>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Linha</th>
+                    <th>Coluna</th>
+                </tr>
+            `;
+            tabela.appendChild(cabecalho);
+
+            // Corpo da tabela
+            const corpo = document.createElement('tbody');
+
+            // Adicionar cada token (exceto whitespace e EOF)
+            estado.tokens.forEach(token => {
+                if (token.tipo === Token.TIPOS.WHITESPACE ||
+                    token.tipo === Token.TIPOS.EOF) {
+                    return;
+                }
+
+                const linha = document.createElement('tr');
+
+                const tipo = document.createElement('td');
+                tipo.textContent = token.tipo;
+                tipo.className = `token-${token.tipo.toLowerCase()}`;
+
+                const valor = document.createElement('td');
+                valor.textContent = token.valor;
+                if (token.tipo === Token.TIPOS.STRING_LITERAL ||
+                    token.tipo === Token.TIPOS.CHAR_LITERAL) {
+                    valor.className = 'token-literal';
+                }
+
+                const linhaTd = document.createElement('td');
+                linhaTd.textContent = token.linha;
+
+                const coluna = document.createElement('td');
+                coluna.textContent = token.coluna;
+
+                linha.appendChild(tipo);
+                linha.appendChild(valor);
+                linha.appendChild(linhaTd);
+                linha.appendChild(coluna);
+
+                corpo.appendChild(linha);
+            });
+
+            tabela.appendChild(corpo);
+            container.appendChild(tabela);
+        }
+
+        // Função para atualizar a visualização da AST
+        function atualizarVisualizacaoAST() {
+            const container = document.getElementById('astConteudo');
+            container.innerHTML = '';
+
+            // Verificar se há AST
+            if (!estado.ast) {
+                container.textContent = 'Não há AST para exibir.';
+                return;
+            }
+
+            // Criar visualização da AST
+            const visualizacaoAst = document.createElement('div');
+            visualizacaoAst.className = 'arvoreAst';
+
+            // Função recursiva para renderizar a árvore
+            function renderizarNo(no, pai) {
+                const noElement = document.createElement('div');
+                noElement.className = 'noAst';
+
+                const cabecalhoNo = document.createElement('div');
+                cabecalhoNo.className = 'cabecalhoNoAst';
+                cabecalhoNo.textContent = no.tipo;
+
+                if (no.valor) {
+                    cabecalhoNo.textContent += `: "${no.valor}"`;
+                }
+
+                noElement.appendChild(cabecalhoNo);
+
+                // Tornar o cabeçalho colapsável
+                cabecalhoNo.addEventListener('click', () => {
+                    const filhosElement = noElement.querySelector('.filhosNoAst');
+                    if (filhosElement) {
+                        filhosElement.style.display =
+                            filhosElement.style.display === 'none' ? 'block' : 'none';
+                    }
+                });
+
+                // Adicionar filhos
+                if (no.filhos && no.filhos.length > 0) {
+                    const filhosContainer = document.createElement('div');
+                    filhosContainer.className = 'filhosNoAst';
+
+                    no.filhos.forEach(filho => {
+                        renderizarNo(filho, filhosContainer);
+                    });
+
+                    noElement.appendChild(filhosContainer);
+                }
+
+                pai.appendChild(noElement);
+            }
+
+            // Iniciar a renderização pela raiz
+            renderizarNo(estado.ast, visualizacaoAst);
+
+            container.appendChild(visualizacaoAst);
+        }
+
+        // Função para atualizar a visualização da pilha
+        function atualizarVisualizacaoPilha() {
+            const container = document.getElementById('pilhaConteudo');
+            container.innerHTML = '';
+
+            // Obter estado atual da memória
+            const estadoMemoria = estado.gerenciadorMemoria.pegaEstadoMemoria();
+
+            // Verificar se há frames
+            if (!estadoMemoria.pilha.frames || estadoMemoria.pilha.frames.length === 0) {
+                container.innerHTML = '<div class="info-execucao">A pilha está vazia.</div>';
+                return;
+            }
+
+            // Criar visualização da pilha
+            const pilhaContainer = document.createElement('div');
+            pilhaContainer.className = 'pilhaContainer';
+
+            // Adicionar frames (do mais recente para o mais antigo)
+            estadoMemoria.pilha.frames.forEach((frame, indice) => {
+                const frameElement = document.createElement('div');
+                frameElement.className = 'frameContainer';
+
+                // Cabeçalho do frame
+                const cabecalhoFrame = document.createElement('div');
+                cabecalhoFrame.className = 'cabecalhoFrame';
+                cabecalhoFrame.textContent = `Frame ${indice}: ${frame.nome}`;
+
+                // Variáveis do frame
+                const variaveisFrame = document.createElement('div');
+                variaveisFrame.className = 'variaveisFrame';
+
+                // Adicionar variáveis locais
+                if (frame.variaveis.length > 0) {
+                    const tituloVars = document.createElement('div');
+                    tituloVars.className = 'tituloSecao';
+                    tituloVars.textContent = 'Variáveis Locais:';
+                    variaveisFrame.appendChild(tituloVars);
+
+                    frame.variaveis.forEach(v => {
+                        const varElement = document.createElement('div');
+                        varElement.className = 'variavelItem';
+
+                        let valorFormatado = formatarValorVariavel(v.valor, v.tipo);
+                        varElement.textContent = `${v.tipo} ${v.nome} = ${valorFormatado}`;
+
+                        variaveisFrame.appendChild(varElement);
+                    });
+                }
+
+                // Adicionar parâmetros
+                if (frame.parametros.length > 0) {
+                    const tituloParams = document.createElement('div');
+                    tituloParams.className = 'tituloSecao';
+                    tituloParams.textContent = 'Parâmetros:';
+                    variaveisFrame.appendChild(tituloParams);
+
+                    frame.parametros.forEach(p => {
+                        const paramElement = document.createElement('div');
+                        paramElement.className = 'parametroItem';
+
+                        let valorFormatado = formatarValorVariavel(p.valor, p.tipo);
+                        paramElement.textContent = `${p.tipo} ${p.nome} = ${valorFormatado}`;
+
+                        variaveisFrame.appendChild(paramElement);
+                    });
+                }
+
+                frameElement.appendChild(cabecalhoFrame);
+                frameElement.appendChild(variaveisFrame);
+
+                pilhaContainer.appendChild(frameElement);
+            });
+
+            container.appendChild(pilhaContainer);
+        }
+
+        // Função para atualizar a visualização da heap
+        function atualizarVisualizacaoHeap() {
+            const container = document.getElementById('heapConteudo');
+            container.innerHTML = '';
+
+            // Obter estado atual da memória
+            const estadoMemoria = estado.gerenciadorMemoria.pegaEstadoMemoria();
+
+            // Criar visualização da heap
+            const heapContainer = document.createElement('div');
+            heapContainer.className = 'heapContainer';
+
+            // Adicionar blocos alocados
+            if (estadoMemoria.heap.blocos && estadoMemoria.heap.blocos.length > 0) {
+                const tituloBlocos = document.createElement('div');
+                tituloBlocos.className = 'tituloSecao';
+                tituloBlocos.textContent = 'Blocos Alocados:';
+                heapContainer.appendChild(tituloBlocos);
+
+                estadoMemoria.heap.blocos.forEach(bloco => {
+                    const blocoElement = document.createElement('div');
+                    blocoElement.className = 'blocoHeap';
+
+                    const cabecalhoBloco = document.createElement('div');
+                    cabecalhoBloco.className = 'cabecalhoBloco';
+                    cabecalhoBloco.textContent = `Bloco: 0x${bloco.endereco.toString(16).padStart(8, '0')}`;
+
+                    const infoBloco = document.createElement('div');
+                    infoBloco.className = 'infoBloco';
+                    infoBloco.innerHTML = `
+                        <div>Tamanho: ${bloco.tamanho} bytes</div>
+                        <div>Alocado em: ${new Date(bloco.alocadoEm).toLocaleTimeString()}</div>
+                        <div>Origem: ${bloco.origem || 'Desconhecida'}</div>
+                    `;
+
+                    blocoElement.appendChild(cabecalhoBloco);
+                    blocoElement.appendChild(infoBloco);
+
+                    heapContainer.appendChild(blocoElement);
+                });
+            } else {
+                // Não há blocos alocados
+                const blocoVazio = document.createElement('div');
+                blocoVazio.className = 'info-execucao';
+                blocoVazio.textContent = 'Não há blocos alocados na heap.';
+                heapContainer.appendChild(blocoVazio);
+            }
+
+            // Adicionar variáveis globais
+            if (estadoMemoria.globais && estadoMemoria.globais.length > 0) {
+                const tituloGlobais = document.createElement('div');
+                tituloGlobais.className = 'tituloSecao';
+                tituloGlobais.textContent = 'Variáveis Globais:';
+                heapContainer.appendChild(tituloGlobais);
+
+                estadoMemoria.globais.forEach(v => {
+                    const varElement = document.createElement('div');
+                    varElement.className = 'variavelGlobal';
+
+                    let valorFormatado = formatarValorVariavel(v.valor, v.tipo);
+                    varElement.textContent = `${v.tipo} ${v.nome} = ${valorFormatado}`;
+
+                    heapContainer.appendChild(varElement);
+                });
+            }
+
+            // Adicionar estatísticas da heap
+            const estatisticasHeap = document.createElement('div');
+            estatisticasHeap.className = 'estatisticasHeap';
+            estatisticasHeap.innerHTML = `
+                <div>Utilizado: ${formatarTamanho(estadoMemoria.heap.utilizado)} de ${formatarTamanho(estadoMemoria.heap.total)}</div>
+                <div>Percentual: ${estadoMemoria.heap.percentual.toFixed(2)}%</div>
+            `;
+
+            heapContainer.appendChild(estatisticasHeap);
+            container.appendChild(heapContainer);
+        }
+
+        // Função para formatar o tamanho em bytes
+        function formatarTamanho(bytes) {
+            if (bytes < 1024) {
+                return `${bytes} B`;
+            } else if (bytes < 1024 * 1024) {
+                return `${(bytes / 1024).toFixed(2)} KB`;
+            } else {
+                return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+            }
+        }
+
+        // Função para formatar o valor de uma variável
+        function formatarValorVariavel(valor, tipo) {
+            if (valor === null || valor === undefined) {
+                return 'NULL';
+            }
+
+            // Formatar com base no tipo
+            if (tipo && (tipo.includes('char*') || tipo.includes('char *') || tipo.includes('string'))) {
+                // É uma string
+                if (typeof valor === 'string') {
+                    return `"${valor}"`;
+                }
+                // É um ponteiro para string (endereço)
+                return `0x${valor.toString(16).padStart(8, '0')}`;
+            }
+
+            if (tipo && tipo.includes('char')) {
+                // Caractere
+                if (typeof valor === 'number') {
+                    return `'${String.fromCharCode(valor)}' (${valor})`;
+                }
+                return `'${valor}'`;
+            }
+
+            if (Array.isArray(valor)) {
+                // Array
+                if (valor.length <= 5) {
+                    return `[${valor.join(', ')}]`;
+                }
+                return `[${valor.slice(0, 5).join(', ')}... +${valor.length - 5} elementos]`;
+            }
+
+            if (typeof valor === 'object') {
+                // Objeto
+                return JSON.stringify(valor);
+            }
+
+            // Valor simples
+            return String(valor);
+        }
+
+        // Função para destacar uma linha no editor
+        function destacarLinha(linha) {
+            // Remover destaque anterior
+            removerDestaques();
+
+            // Adicionar classe para destacar a linha (depende do tipo de editor)
+            const editorArea = document.getElementById('editorCodeArea');
+            const linhas = editorArea.value.split('\n');
+
+            // Para um editor simples de textarea, podemos tentar destacar visualmente
+            if (linha > 0 && linha <= linhas.length) {
+                // Aqui dependemos da implementação do editor de código
+                // Para um textarea simples, não temos como destacar linhas visuais
+
+                // Para um editor mais avançado como CodeMirror, seria assim:
+                // editor.addLineClass(linha - 1, 'background', 'linha-atual');
+
+                adicionarLog(`Linha atual: ${linha}`);
+            }
+        }
+
+        // Função para remover todos os destaques
+        function removerDestaques() {
+            // Dependendo do editor usado, a implementação varia
+            // Para CodeMirror:
+            // for (let i = 0; i < editor.lineCount(); i++) {
+            //     editor.removeLineClass(i, 'background', 'linha-atual');
+            //     editor.removeLineClass(i, 'background', 'linha-destacada');
+            // }
+        }
+
+        // Configurar abas para pilha, heap e estatísticas
+        function configurarAbas() {
+            const tabs = document.querySelectorAll('.tab');
+            const paineis = {
+                'pilha': document.getElementById('pilhaConteudo'),
+                'heap': document.getElementById('heapConteudo'),
+                'estatisticas': document.getElementById('estatisticasConteudo')
+            };
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remover classe ativo de todas as abas
+                    tabs.forEach(t => t.classList.remove('ativo'));
+
+                    // Esconder todos os painéis
+                    Object.values(paineis).forEach(p => {
+                        if (p) p.style.display = 'none';
+                    });
+
+                    // Ativar a aba clicada
+                    tab.classList.add('ativo');
+
+                    // Mostrar o painel correspondente
+                    const painelAtivo = paineis[tab.dataset.tab];
+                    if (painelAtivo) {
+                        painelAtivo.style.display = 'block';
+                    }
+                });
+            });
+        }
+
+        // Carregar exemplo inicial
+        function carregarExemploInicial() {
+            const codigoInicial = `/* Exemplo simples de código C */
+#include <stdio.h>
+
+int main() {
+    int x = 10;
+    int y = 20;
+
+    printf("Soma: %d\\n", x + y);
+
+    return 0;
+}`;
+
+            atualizarCodigo(codigoInicial);
+        }
+
+        // Registrar event listeners
+        function registrarEventListeners() {
+            // Botões originais
+            document.getElementById('btnExecutar').addEventListener('click', executarCodigo);
+            document.getElementById('btnPassoAnterior').addEventListener('click', passoAnterior);
+            document.getElementById('btnProximoPasso').addEventListener('click', proximoPasso);
+            document.getElementById('btnReiniciar').addEventListener('click', reiniciarExecucao);
+
+            // Botões para testar componentes específicos
+            document.getElementById('btnAnalisarLexico').addEventListener('click', testarAnalisadorLexico);
+            document.getElementById('btnAnalisarSintatico').addEventListener('click', testarAnalisadorSintatico);
+            document.getElementById('btnSimularMemoria').addEventListener('click', testarGerenciadorMemoria);
+            document.getElementById('btnSimularIO').addEventListener('click', testarSimuladorIO);
+
+            // Botões adicionais
+            document.getElementById('btnTestarGerenciadorMemoria').addEventListener('click', testarGerenciadorMemoria);
+            document.getElementById('btnTestarToken').addEventListener('click', testarToken);
+            document.getElementById('btnTestarNoAST').addEventListener('click', testarNoAST);
+            document.getElementById('btnVisualizarAST').addEventListener('click', visualizarAST);
+            document.getElementById('btnTestarRegistroExecucao').addEventListener('click', testarRegistroExecucao);
+            document.getElementById('btnCarregarExemplo').addEventListener('click', carregarExemplo);
+            document.getElementById('btnExportarLog').addEventListener('click', exportarLog);
+
+            // Evento de mudança no editor
+            document.getElementById('editorCodeArea').addEventListener('input', () => {
+                estado.codigoFonte = document.getElementById('editorCodeArea').value;
+            });
+        }
+
+        // Inicializar componentes
+        inicializarComponentes();
+
+        // Configurar abas
+        configurarAbas();
+
+        // Carregar exemplo inicial
+        carregarExemploInicial();
+
+        // Registrar eventos
+        registrarEventListeners();
+
+        // Log de inicialização
+        adicionarLog('IFSCEE Testador de Componentes iniciado com sucesso.');
+        mostrarStatus('Pronto para testar componentes.');
+    });
+</script>
+</body>
+</html>

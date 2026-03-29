@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tokenizador C Completo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            font-family: monospace;
+            resize: vertical;
+            height: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            font-family: monospace;
+        }
+
+        .token {
+            display: inline-block;
+            margin: 2px;
+            padding: 4px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<h1>Tokenizador C Completo</h1>
+<textarea id="inputText" placeholder="Digite o código C aqui..."></textarea><br>
+<button id="tokenizeButton">Tokenizar</button>
+<h2>Tokens:</h2>
+<div id="output"></div>
+
+<script>
+    document.getElementById('tokenizeButton').addEventListener('click', function() {
+        const inputText = document.getElementById('inputText').value;
+        const tokens = tokenizeC(inputText);
+        displayTokens(tokens);
+    });
+
+    const keywords = [
+        "auto", "break", "case", "char", "const", "continue", "default",
+        "do", "double", "else", "enum", "extern", "float", "for", "goto",
+        "if", "inline", "int", "long", "register", "restrict", "return",
+        "short", "signed", "sizeof", "static", "struct", "switch", "typedef",
+        "union", "unsigned", "void", "volatile", "while", "_Alignas",
+        "_Alignof", "_Atomic", "_Bool", "_Complex", "_Generic", "_Imaginary",
+        "_Noreturn", "_Static_assert", "_Thread_local"
+    ];
+
+    const operators = [
+        "+", "-", "*", "/", "%", "++", "--", "==", "!=", ">", "<", ">=", "<=",
+        "&&", "||", "!", "&", "|", "^", "~", "<<", ">>", "=", "+=", "-=", "*=",
+        "/=", "%=", "&=", "|=", "^=", "<<=", ">>="
+    ];
+
+    const delimiters = [
+        "(", ")", "{", "}", "[", "]", ";", ",", ".", "?", ":"
+    ];
+
+    function tokenizeC(text) {
+        const tokens = [];
+        let currentToken = '';
+        let inSingleLineComment = false;
+        let inMultiLineComment = false;
+        let inStringLiteral = false;
+        let inCharLiteral = false;
+        let inPreprocessor = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i + 1];
+
+            // Verifica se estamos entrando em um comentário de linha única
+            if (!inSingleLineComment && !inMultiLineComment && !inStringLiteral && !inCharLiteral && char === '/' && nextChar === '/') {
+                inSingleLineComment = true;
+                i++; // Pula o próximo caractere '/'
+                continue;
+            }
+
+            // Verifica se estamos entrando em um comentário de múltiplas linhas
+            if (!inSingleLineComment && !inMultiLineComment && !inStringLiteral && !inCharLiteral && char === '/' && nextChar === '*') {
+                inMultiLineComment = true;
+                i++; // Pula o próximo caractere '*'
+                continue;
+            }
+
+            // Verifica se estamos saindo de um comentário de linha única
+            if (inSingleLineComment && char === '\n') {
+                inSingleLineComment = false;
+            }
+
+            // Verifica se estamos saindo de um comentário de múltiplas linhas
+            if (inMultiLineComment && char === '*' && nextChar === '/') {
+                inMultiLineComment = false;
+                i++; // Pula o próximo caractere '/'
+                continue;
+            }
+
+            // Verifica se estamos entrando em uma string literal
+            if (!inSingleLineComment && !inMultiLineComment && !inStringLiteral && !inCharLiteral && char === '"') {
+                inStringLiteral = true;
+            }
+
+            // Verifica se estamos saindo de uma string literal
+            if (inStringLiteral && char === '"') {
+                inStringLiteral = false;
+                currentToken += char;
+                tokens.push(currentToken);
+                currentToken = '';
+                continue;
+            }
+
+            // Verifica se estamos entrando em um caractere literal
+            if (!inSingleLineComment && !inMultiLineComment && !inStringLiteral && !inCharLiteral && char === "'") {
+                inCharLiteral = true;
+            }
+
+            // Verifica se estamos saindo de um caractere literal
+            if (inCharLiteral && char === "'") {
+                inCharLiteral = false;
+                currentToken += char;
+                tokens.push(currentToken);
+                currentToken = '';
+                continue;
+            }
+
+            // Se estivermos dentro de um comentário, string literal ou caractere literal, adicione o caractere ao token atual
+            if (inSingleLineComment || inMultiLineComment || inStringLiteral || inCharLiteral) {
+                currentToken += char;
+                continue;
+            }
+
+            // Verifica se o caractere é um delimitador
+            if (isDelimiter(char)) {
+                if (currentToken.length > 0) {
+                    tokens.push(currentToken);
+                    currentToken = '';
+                }
+                if (!isWhitespace(char)) {
+                    tokens.push(char);
+                }
+                continue;
+            }
+
+            // Adiciona o caractere ao token atual
+            currentToken += char;
+        }
+
+        if (currentToken.length > 0) {
+            tokens.push(currentToken);
+        }
+
+        return tokens;
+    }
+
+    function isDelimiter(char) {
+        const delimiters = [
+            ' ', '\n', '\t', ',', '.', ';', ':', '!', '?', '(', ')', '[', ']', '{', '}', '/', '\\', '+', '-', '*', '%', '<', '>', '=', '&', '|', '^', '~', '#'
+        ];
+        return delimiters.includes(char);
+    }
+
+    function isWhitespace(char) {
+        return char === ' ' || char === '\n' || char === '\t';
+    }
+
+    function displayTokens(tokens) {
+        const outputDiv = document.getElementById('output');
+        outputDiv.innerHTML = '';
+
+        tokens.forEach(token => {
+            const span = document.createElement('span');
+            span.textContent = token + ' ';
+            span.classList.add('token');
+            outputDiv.appendChild(span);
+        });
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IFSCEE - Interpretador C - Testes</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --border-color: #bdc3c7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        h1, h2, h3 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 10px;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 5px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .painel {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .painel-titulo {
+            font-size: 18px;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .painel-conteudo {
+            min-height: 100px;
+            max-height: 500px;
+            overflow: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .editor {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+        }
+
+        .editor .painel-conteudo {
+            min-height: 400px;
+        }
+
+        .linha-atual {
+            background-color: rgba(52, 152, 219, 0.2);
+        }
+
+        .linha-erro {
+            background-color: rgba(231, 76, 60, 0.2);
+        }
+
+        .linha-breakpoint {
+            background-color: rgba(231, 76, 60, 0.5);
+        }
+
+        .botoes {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.2s;
+        }
+
+        .botao-primario {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .botao-primario:hover {
+            background-color: #2980b9;
+        }
+
+        .botao-secundario {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .botao-secundario:hover {
+            background-color: #27ae60;
+        }
+
+        .botao-perigo {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .botao-perigo:hover {
+            background-color: #c0392b;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            padding: 8px 15px;
+            background-color: #ddd;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+        }
+
+        .tab.ativo {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            border: none;
+            resize: none;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        textarea:focus {
+            outline: none;
+        }
+
+        /* Estilos para os tokens */
+        .token-keyword {
+            color: #9c27b0;
+            font-weight: bold;
+        }
+
+        .token-identifier {
+            color: #2196f3;
+        }
+
+        .token-int_literal, .token-float_literal {
+            color: #ff9800;
+        }
+
+        .token-string_literal, .token-char_literal {
+            color: #4caf50;
+        }
+
+        .token-punctuator {
+            color: #f44336;
+        }
+
+        .token-comment {
+            color: #757575;
+            font-style: italic;
+        }
+
+        .token-preprocessor {
+            color: #00bcd4;
+        }
+
+        /* Tabelas */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 6px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Visualização AST */
+        .arvoreAst {
+            padding-left: 5px;
+        }
+
+        .noAst {
+            margin: 2px 0;
+            padding-left: 15px;
+            border-left: 1px dotted #ccc;
+        }
+
+        .cabecalhoNoAst {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .filhosNoAst {
+            margin-left: 10px;
+        }
+
+        /* Áreas de Entrada/Saída */
+        .io-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 10px;
+        }
+
+        .areaSaida {
+            min-height: 150px;
+            max-height: 300px;
+            overflow-y: auto;
+            background-color: #f8f8f8;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+
+        .areaEntrada {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+
+        .com-erro {
+            border-color: var(--danger-color);
+            animation: pisca 0.5s 3;
+        }
+
+        @keyframes pisca {
+            0%, 100% { border-color: var(--danger-color); }
+            50% { border-color: transparent; }
+        }
+
+        .info-execucao {
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-left: 4px solid var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        /* Estados variáveis */
+        .frameContainer, .blocoHeap, .variavelGlobal {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+
+        .cabecalhoFrame, .cabecalhoBloco, .tituloSecao {
+            font-weight: bold;
+            margin-bottom: 5px;
+            background-color: #f5f5f5;
+            padding: 5px;
+            border-radius: 3px;
+        }
+
+        .variaveisFrame, .parametrosFrame, .infoBloco {
+            padding-left: 10px;
+        }
+
+        .variavelItem, .parametroItem {
+            padding: 3px 0;
+        }
+
+        /* Status e feedback */
+        #statusContainer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--dark-color);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #statusContainer.visivel {
+            opacity: 1;
+        }
+
+        /* Estilos para a visualização mobile */
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .editor {
+                grid-column: 1;
+                grid-row: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>IFSCEE - Interpretador de C - Testes</h1>
+    <p>Veja C sendo Interpretado</p>
+</header>
+
+<div class="container">
+    <!-- Editor -->
+    <div class="painel editor">
+        <div class="painel-titulo">
+            <span>Editor de Código</span>
+            <button class="botao-secundario botao-exemplo">Carregar Exemplo</button>
+        </div>
+        <div class="painel-conteudo" id="editorConteudo">
+            <textarea id="editorCodeArea" placeholder="Digite seu código C aqui..."></textarea>
+        </div>
+    </div>
+
+    <!-- Área de Saída/Entrada -->
+    <div class="painel">
+        <div class="painel-titulo">Saída do Programa</div>
+        <div class="io-container">
+            <pre class="areaSaida" id="saidaPrograma"></pre>
+            <input type="text" class="areaEntrada" id="entradaPrograma" placeholder="Digite aqui para entrada..." disabled>
+        </div>
+    </div>
+
+    <!-- Tokens -->
+    <div class="painel">
+        <div class="painel-titulo">Tokens</div>
+        <div class="painel-conteudo" id="tokensConteudo"></div>
+    </div>
+
+    <!-- AST -->
+    <div class="painel">
+        <div class="painel-titulo">Árvore Sintática (AST)</div>
+        <div class="painel-conteudo" id="astConteudo"></div>
+    </div>
+
+    <!-- Estado da Memória -->
+    <div class="painel">
+        <div class="tabs">
+            <div class="tab ativo" data-tab="pilha">Pilha</div>
+            <div class="tab" data-tab="heap">Heap</div>
+            <div class="tab" data-tab="estatisticas">Estatísticas</div>
+        </div>
+        <div class="painel-conteudo" id="pilhaConteudo">
+            <div class="info-execucao">Execute o programa para ver o estado da pilha.</div>
+        </div>
+        <div class="painel-conteudo" id="heapConteudo" style="display: none;">
+            <div class="info-execucao">Execute o programa para ver o estado da heap.</div>
+        </div>
+        <div class="painel-conteudo" id="estatisticasConteudo" style="display: none;">
+            <div class="info-execucao">Execute o programa para ver estatísticas de execução.</div>
+        </div>
+    </div>
+</div>
+
+<!-- Botões de controle -->
+<div class="botoes">
+    <button id="btnExecutar" class="botao-primario">▶ Executar</button>
+    <button id="btnPassoAnterior" class="botao-secundario" disabled>⏮ Passo Anterior</button>
+    <button id="btnProximoPasso" class="botao-secundario" disabled>⏭ Próximo Passo</button>
+    <button id="btnReiniciar" class="botao-perigo">⟲ Reiniciar</button>
+</div>
+
+<!-- Status -->
+<div id="statusContainer"></div>
+
+<!-- Script de inicialização corrigido -->
+<script>
+    // Implementações diretamente no arquivo para evitar problemas de carregamento
+    document.addEventListener('DOMContentLoaded', () => {
+        // Carregar exemplo inicial
+        carregarExemplo();
+
+        // Configurar abas
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove a classe ativo de todas as abas
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+                // Adiciona a classe ativo à aba clicada
+                tab.classList.add('ativo');
+
+                // Esconde todos os conteúdos
+                document.querySelectorAll('#pilhaConteudo, #heapConteudo, #estatisticasConteudo')
+                    .forEach(conteudo => conteudo.style.display = 'none');
+
+                // Mostra o conteúdo correspondente
+                const tabId = tab.getAttribute('data-tab');
+                document.getElementById(`${tabId}Conteudo`).style.display = 'block';
+            });
+        });
+
+        // Botão de carregar exemplo
+        document.querySelector('.botao-exemplo').addEventListener('click', carregarExemplo);
+
+        // Botões de controle
+        document.getElementById('btnExecutar').addEventListener('click', executarCodigo);
+        document.getElementById('btnPassoAnterior').addEventListener('click', passoAnterior);
+        document.getElementById('btnProximoPasso').addEventListener('click', proximoPasso);
+        document.getElementById('btnReiniciar').addEventListener('click', reiniciarExecucao);
+
+        // Eventos de editor
+        const editorArea = document.getElementById('editorCodeArea');
+        if (editorArea) {
+            editorArea.addEventListener('input', () => {
+                analisarCodigo(editorArea.value);
+            });
+        }
+    });
+
+    // Estado da aplicação
+    const estado = {
+        codigoFonte: '',
+        tokens: [],
+        ast: null,
+        emExecucao: false,
+        pausado: false,
+        linha: 0
+    };
+
+    // Simulador básico para tokenização
+    function analisarCodigo(codigo) {
+        estado.codigoFonte = codigo;
+
+        // Simulação simples de tokens e AST
+        const tokens = simularTokens(codigo);
+        mostrarTokens(tokens);
+
+        const ast = simularAST(tokens);
+        mostrarAST(ast);
+
+        return true;
+    }
+
+    // Simulador muito simples de tokenização
+    function simularTokens(codigo) {
+        const tokens = [];
+        let tokenAtual = '';
+        let tipo = '';
+        let linha = 1;
+        let coluna = 1;
+
+        const keywords = ['int', 'char', 'void', 'if', 'else', 'while', 'for', 'return', 'struct', 'switch', 'case', 'break', 'continue', 'default'];
+
+        function adicionarToken(tipo, valor, linha, coluna) {
+            tokens.push({ tipo, valor, linha, coluna });
+        }
+
+        for (let i = 0; i < codigo.length; i++) {
+            const char = codigo[i];
+
+            // Nova linha
+            if (char === '\n') {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+                linha++;
+                coluna = 1;
+                continue;
+            }
+
+            // Espaço em branco
+            if (/\s/.test(char)) {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+                coluna++;
+                continue;
+            }
+
+            // Operadores e pontuação
+            if (/[+\-*/%=&|^~!<>?:;,.[\](){}]/.test(char)) {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+                adicionarToken('PUNCTUATOR', char, linha, coluna);
+                coluna++;
+                continue;
+            }
+
+            // String ou caractere
+            if (char === '"' || char === "'") {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+
+                const fechamento = char;
+                let valor = char;
+                let j = i + 1;
+
+                while (j < codigo.length && codigo[j] !== fechamento) {
+                    valor += codigo[j];
+                    j++;
+                }
+
+                if (j < codigo.length) {
+                    valor += codigo[j]; // Adiciona o fechamento
+                    adicionarToken(char === '"' ? 'STRING_LITERAL' : 'CHAR_LITERAL', valor, linha, coluna);
+                    coluna += valor.length;
+                    i = j;
+                } else {
+                    adicionarToken('ERROR', valor, linha, coluna);
+                    coluna += valor.length;
+                    i = j - 1;
+                }
+
+                continue;
+            }
+
+            // Comentário de linha
+            if (char === '/' && i+1 < codigo.length && codigo[i+1] === '/') {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+
+                let valor = '//';
+                let j = i + 2;
+
+                while (j < codigo.length && codigo[j] !== '\n') {
+                    valor += codigo[j];
+                    j++;
+                }
+
+                adicionarToken('COMMENT', valor, linha, coluna);
+                coluna += valor.length;
+                i = j - 1;
+                continue;
+            }
+
+            // Comentário de bloco
+            if (char === '/' && i+1 < codigo.length && codigo[i+1] === '*') {
+                if (tokenAtual) {
+                    determinarTipoEAdicionarToken();
+                }
+
+                let valor = '/*';
+                let j = i + 2;
+                let linhaInicial = linha;
+                let colunaInicial = coluna;
+
+                while (j < codigo.length - 1 && !(codigo[j] === '*' && codigo[j+1] === '/')) {
+                    valor += codigo[j];
+                    if (codigo[j] === '\n') {
+                        linha++;
+                        coluna = 1;
+                    } else {
+                        coluna++;
+                    }
+                    j++;
+                }
+
+                if (j < codigo.length - 1) {
+                    valor += '*/';
+                    adicionarToken('COMMENT', valor, linhaInicial, colunaInicial);
+                    i = j + 1;
+                } else {
+                    adicionarToken('ERROR', valor, linhaInicial, colunaInicial);
+                    i = j;
+                }
+
+                continue;
+            }
+
+            // Acumulando token
+            tokenAtual += char;
+            coluna++;
+
+            function determinarTipoEAdicionarToken() {
+                // Determina o tipo do token
+                if (keywords.includes(tokenAtual)) {
+                    tipo = 'KEYWORD';
+                } else if (/^[a-zA-Z_]\w*$/.test(tokenAtual)) {
+                    tipo = 'IDENTIFIER';
+                } else if (/^[0-9]+$/.test(tokenAtual)) {
+                    tipo = 'INT_LITERAL';
+                } else if (/^[0-9]+\.[0-9]+$/.test(tokenAtual)) {
+                    tipo = 'FLOAT_LITERAL';
+                } else {
+                    tipo = 'ERROR';
+                }
+
+                adicionarToken(tipo, tokenAtual, linha, coluna - tokenAtual.length);
+                tokenAtual = '';
+            }
+        }
+
+        // Último token, se houver
+        if (tokenAtual) {
+            // Determina o tipo do token
+            if (keywords.includes(tokenAtual)) {
+                tipo = 'KEYWORD';
+            } else if (/^[a-zA-Z_]\w*$/.test(tokenAtual)) {
+                tipo = 'IDENTIFIER';
+            } else if (/^[0-9]+$/.test(tokenAtual)) {
+                tipo = 'INT_LITERAL';
+            } else if (/^[0-9]+\.[0-9]+$/.test(tokenAtual)) {
+                tipo = 'FLOAT_LITERAL';
+            } else {
+                tipo = 'ERROR';
+            }
+
+            adicionarToken(tipo, tokenAtual, linha, coluna - tokenAtual.length);
+        }
+
+        return tokens;
+    }
+
+    // Simulador muito simples de AST
+    function simularAST(tokens) {
+        // AST muito simplista apenas para demonstração
+        const ast = {
+            tipo: 'PROGRAMA',
+            filhos: []
+        };
+
+        // Procura por uma função main para adicionar à AST
+        let i = 0;
+        while (i < tokens.length - 2) {
+            if (tokens[i].tipo === 'KEYWORD' && tokens[i].valor === 'int' &&
+                tokens[i+1].tipo === 'IDENTIFIER' && tokens[i+1].valor === 'main' &&
+                tokens[i+2].tipo === 'PUNCTUATOR' && tokens[i+2].valor === '(') {
+
+                ast.filhos.push({
+                    tipo: 'FUNCTION_DEF',
+                    valor: 'main',
+                    linha: tokens[i].linha,
+                    coluna: tokens[i].coluna,
+                    filhos: [{
+                        tipo: 'RETURN_TYPE',
+                        valor: 'int',
+                        linha: tokens[i].linha,
+                        coluna: tokens[i].coluna
+                    }]
+                });
+
+                break;
+            }
+            i++;
+        }
+
+        return ast;
+    }
+
+    // Mostra tokens na interface
+    function mostrarTokens(tokens) {
+        const container = document.getElementById('tokensConteudo');
+        if (!container) return;
+
+        // Cria tabela para mostrar tokens
+        let html = '<table class="tabelaTokens">';
+        html += '<thead><tr><th>Tipo</th><th>Valor</th><th>Linha</th><th>Coluna</th></tr></thead>';
+        html += '<tbody>';
+
+        tokens.forEach(token => {
+            if (token.tipo === 'WHITESPACE' || token.tipo === 'EOF') return;
+
+            html += `<tr>
+                    <td class="token-${token.tipo.toLowerCase()}">${token.tipo}</td>
+                    <td>${token.valor}</td>
+                    <td>${token.linha}</td>
+                    <td>${token.coluna}</td>
+                </tr>`;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    // Mostra AST na interface
+    function mostrarAST(ast) {
+        const container = document.getElementById('astConteudo');
+        if (!container) return;
+
+        function renderizarNo(no) {
+            let html = `<div class="noAst">
+                    <div class="cabecalhoNoAst">${no.tipo}${no.valor ? ': "' + no.valor + '"' : ''}</div>`;
+
+            if (no.filhos && no.filhos.length > 0) {
+                html += '<div class="filhosNoAst">';
+                no.filhos.forEach(filho => {
+                    html += renderizarNo(filho);
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        container.innerHTML = '<div class="arvoreAst">' + renderizarNo(ast) + '</div>';
+    }
+
+    // Função para mostrar saída de programa
+    function adicionarSaida(texto, ehErro = false) {
+        const saida = document.getElementById('saidaPrograma');
+        if (!saida) return;
+
+        saida.textContent += (ehErro ? '[ERRO] ' : '') + texto;
+        saida.scrollTop = saida.scrollHeight;
+    }
+
+    // Simulação da execução do código
+    function executarCodigo() {
+        const codigo = estado.codigoFonte;
+        if (!codigo) {
+            mostrarStatus('Por favor, digite código para executar', true);
+            return;
+        }
+
+        if (estado.emExecucao && !estado.pausado) {
+            // Pausar execução em andamento
+            estado.pausado = true;
+            document.getElementById('btnExecutar').textContent = '▶ Continuar';
+            mostrarStatus('Execução pausada');
+            return;
+        }
+
+        if (estado.pausado) {
+            // Continuar execução
+            estado.pausado = false;
+            document.getElementById('btnExecutar').textContent = '⏸ Pausar';
+            mostrarStatus('Execução continuada');
+            simularExecucao();
+            return;
+        }
+
+        // Iniciar nova execução
+        limparSaida();
+        mostrarStatus('Iniciando execução');
+        estado.emExecucao = true;
+        estado.pausado = false;
+        document.getElementById('btnExecutar').textContent = '⏸ Pausar';
+
+        // Habilitar botões de passo
+        document.getElementById('btnPassoAnterior').disabled = false;
+        document.getElementById('btnProximoPasso').disabled = false;
+
+        // Simular execução
+        simularExecucao();
+    }
+
+    // Simula a execução do código
+    function simularExecucao() {
+        // Exemplo simplificado - apenas para demonstração
+        const linhas = estado.codigoFonte.split('\n');
+
+        // Simula execução linha a linha
+        let i = 0;
+        function executarLinha() {
+            if (i >= linhas.length || estado.pausado) return;
+
+            const linha = linhas[i].trim();
+            estado.linha = i + 1;
+
+            // Destaca linha atual
+            mostrarLinhaAtual(i + 1);
+
+            // Simula saída para printf e similar
+            if (linha.includes('printf') || linha.includes('puts')) {
+                const match = linha.match(/"([^"]*)"/);
+                if (match) {
+                    adicionarSaida(match[1] + '\n');
+                }
+            }
+
+            // Simula alocação para demonstrar heap e pilha
+            if (linha.includes('malloc') || linha.includes('calloc')) {
+                atualizarHeapSimulada();
+            }
+
+            if (linha.includes('int') && linha.includes('=')) {
+                atualizarPilhaSimulada();
+            }
+
+            i++;
+            setTimeout(executarLinha, 200); // Executa próxima linha após um pequeno delay
+        }
+
+        executarLinha();
+    }
+
+    // Simular passo anterior
+    function passoAnterior() {
+        mostrarStatus('Passo anterior');
+        // Esta é apenas uma simulação - em um sistema real, usaria o registro de execução
+        if (estado.linha > 1) {
+            estado.linha--;
+            mostrarLinhaAtual(estado.linha);
+        }
+    }
+
+    // Simular próximo passo
+    function proximoPasso() {
+        mostrarStatus('Próximo passo');
+        // Esta é apenas uma simulação - em um sistema real, executaria o próximo passo
+        const linhas = estado.codigoFonte.split('\n');
+        if (estado.linha < linhas.length) {
+            estado.linha++;
+            mostrarLinhaAtual(estado.linha);
+
+            const linha = linhas[estado.linha - 1].trim();
+
+            // Simula saída para printf e similar
+            if (linha.includes('printf') || linha.includes('puts')) {
+                const match = linha.match(/"([^"]*)"/);
+                if (match) {
+                    adicionarSaida(match[1] + '\n');
+                }
+            }
+
+            // Simula alocação para demonstrar heap e pilha
+            if (linha.includes('malloc') || linha.includes('calloc')) {
+                atualizarHeapSimulada();
+            }
+
+            if (linha.includes('int') && linha.includes('=')) {
+                atualizarPilhaSimulada();
+            }
+        }
+    }
+
+    // Simular reinício da execução
+    function reiniciarExecucao() {
+        estado.emExecucao = false;
+        estado.pausado = false;
+        estado.linha = 0;
+
+        // Desabilitar botões de passo
+        document.getElementById('btnPassoAnterior').disabled = true;
+        document.getElementById('btnProximoPasso').disabled = true;
+
+        // Resetar botão executar
+        document.getElementById('btnExecutar').textContent = '▶ Executar';
+
+        // Limpar destaques
+        const editorArea = document.getElementById('editorCodeArea');
+        if (editorArea) {
+            editorArea.classList.remove('linha-atual', 'linha-erro');
+        }
+
+        // Limpar saída
+        limparSaida();
+
+        // Limpar simulações de memória
+        document.getElementById('pilhaConteudo').innerHTML =
+            '<div class="info-execucao">Execute o programa para ver o estado da pilha.</div>';
+        document.getElementById('heapConteudo').innerHTML =
+            '<div class="info-execucao">Execute o programa para ver o estado da heap.</div>';
+        document.getElementById('estatisticasConteudo').innerHTML =
+            '<div class="info-execucao">Execute o programa para ver estatísticas de execução.</div>';
+
+        mostrarStatus('Execução reiniciada');
+    }
+
+    // Função para mostrar mensagens de status
+    function mostrarStatus(mensagem, ehErro = false) {
+        const statusContainer = document.getElementById('statusContainer');
+        if (!statusContainer) return;
+
+        statusContainer.textContent = mensagem;
+        statusContainer.style.backgroundColor = ehErro ? '#e74c3c' : '#2c3e50';
+        statusContainer.classList.add('visivel');
+
+        // Esconde após 3 segundos
+        setTimeout(() => {
+            statusContainer.classList.remove('visivel');
+        }, 3000);
+    }
+
+    // Limpa a área de saída
+    function limparSaida() {
+        const saida = document.getElementById('saidaPrograma');
+        if (saida) {
+            saida.textContent = '';
+        }
+    }
+
+    // Mostra a linha atual no editor
+    function mostrarLinhaAtual(linha) {
+        const editor = document.getElementById('editorCodeArea');
+        if (!editor) return;
+
+        // Destaca a linha atual de alguma forma
+        // Em um cenário real, isso seria feito através do CodeMirror ou outro editor
+        adicionarSaida(`[Executando linha ${linha}]\n`);
+    }
+
+    // Simulação da pilha
+    function atualizarPilhaSimulada() {
+        const container = document.getElementById('pilhaConteudo');
+        if (!container) return;
+
+        // Simula um frame básico
+        container.innerHTML = `
+            <div class="frameContainer">
+                <div class="cabecalhoFrame">Frame 0: main</div>
+                <div class="variaveisFrame">
+                    <div class="tituloSecao">Variáveis Locais:</div>
+                    <div class="variavelItem">int contador = ${Math.floor(Math.random() * 10)}</div>
+                    <div class="variavelItem">int resultado = ${Math.floor(Math.random() * 100)}</div>
+                </div>
+            </div>`;
+    }
+
+    // Simulação da heap
+    function atualizarHeapSimulada() {
+        const container = document.getElementById('heapConteudo');
+        if (!container) return;
+
+        const endereco = '0x' + Math.floor(Math.random() * 0xFFFFFF).toString(16).padStart(8, '0');
+        const tamanho = Math.floor(Math.random() * 100);
+
+        container.innerHTML = `
+            <div class="blocoHeap">
+                <div class="cabecalhoBloco">Bloco: ${endereco}</div>
+                <div class="infoBloco">
+                    <div>Tamanho: ${tamanho} bytes</div>
+                    <div>Alocado em: ${new Date().toLocaleTimeString()}</div>
+                    <div>Origem: malloc</div>
+                </div>
+            </div>
+            <div class="estatisticasHeap">
+                <div>Utilizado: ${tamanho} bytes de 1048576 bytes</div>
+                <div>Percentual: 0.01%</div>
+            </div>`;
+
+        // Também atualiza estatísticas
+        atualizarEstatisticasSimuladas(tamanho);
+    }
+
+    // Simulação de estatísticas
+    function atualizarEstatisticasSimuladas(tamanhoHeap) {
+        const container = document.getElementById('estatisticasConteudo');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="info-execucao">
+                <div>Passos totais: ${Math.floor(Math.random() * 100)}</div>
+                <div>Tempo de execução: ${(Math.random() * 0.5).toFixed(2)}s</div>
+                <div>Instruções por segundo: ${Math.floor(Math.random() * 1000)}</div>
+                <div>Memória máxima utilizada: ${tamanhoHeap || Math.floor(Math.random() * 100)} bytes</div>
+            </div>`;
+    }
+
+    // Função para carregar um exemplo
+    function carregarExemplo() {
+        const exemplos = [
+            {
+                nome: "Hello World",
+                codigo: `/*
+ * Exemplo de código C - Hello World
+ */
+#include <stdio.h>
+
+int main() {
+    // Declaração de variáveis
+    const char* mensagem = "Olá, mundo!";
+    int contador = 0;
+
+    // Imprime a mensagem
+    printf("%s\\n", mensagem);
+
+    // Loop de exemplo
+    while (contador < 5) {
+        printf("Contador: %d\\n", contador);
+        contador++;
+    }
+
+    return 0;
+}`
+            },
+            {
+                nome: "Calculadora Simples",
+                codigo: `/*
+ * Calculadora simples em C
+ */
+#include <stdio.h>
+
+int main() {
+    // Declaração de variáveis
+    int num1, num2;
+    char operador;
+    int resultado;
+
+    // Solicita entrada ao usuário
+    printf("Digite o primeiro número: ");
+    scanf("%d", &num1);
+
+    printf("Digite o operador (+, -, *, /): ");
+    scanf(" %c", &operador);
+
+    printf("Digite o segundo número: ");
+    scanf("%d", &num2);
+
+    // Realiza a operação
+    switch (operador) {
+        case '+':
+            resultado = num1 + num2;
+            break;
+        case '-':
+            resultado = num1 - num2;
+            break;
+        case '*':
+            resultado = num1 * num2;
+            break;
+        case '/':
+            if (num2 != 0) {
+                resultado = num1 / num2;
+            } else {
+                printf("Erro: Divisão por zero!\\n");
+                return 1;
+            }
+            break;
+        default:
+            printf("Operador inválido!\\n");
+            return 1;
+    }
+
+    // Mostra o resultado
+    printf("%d %c %d = %d\\n", num1, operador, num2, resultado);
+
+    return 0;
+}`
+            },
+            {
+                nome: "Alocação Dinâmica",
+                codigo: `/*
+ * Exemplo de alocação dinâmica em C
+ */
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    int tamanho;
+    int i;
+    int* array;
+    int soma = 0;
+
+    // Solicita o tamanho do array
+    printf("Digite o tamanho do array: ");
+    scanf("%d", &tamanho);
+
+    // Aloca memória para o array
+    array = (int*) malloc(tamanho * sizeof(int));
+
+    // Verifica se a alocação foi bem-sucedida
+    if (array == NULL) {
+        printf("Erro: Falha na alocação de memória!\\n");
+        return 1;
+    }
+
+    // Preenche o array
+    for (i = 0; i < tamanho; i++) {
+        array[i] = i * 10;
+        printf("array[%d] = %d\\n", i, array[i]);
+    }
+
+    // Calcula a soma dos elementos
+    for (i = 0; i < tamanho; i++) {
+        soma += array[i];
+    }
+
+    printf("Soma dos elementos: %d\\n", soma);
+
+    // Libera a memória alocada
+    free(array);
+    printf("Memória liberada com sucesso!\\n");
+
+    return 0;
+}`
+            }
+        ];
+
+        // Seleciona um exemplo aleatório
+        const exemplo = exemplos[Math.floor(Math.random() * exemplos.length)];
+
+        // Atualiza o editor com o exemplo
+        const editorArea = document.getElementById('editorCodeArea');
+        if (editorArea) {
+            editorArea.value = exemplo.codigo;
+
+            // Analisa o código
+            analisarCodigo(exemplo.codigo);
+        }
+
+        mostrarStatus(`Exemplo carregado: ${exemplo.nome}`);
+    }
+</script>
+
+</body>
+</html>

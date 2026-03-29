@@ -1,0 +1,282 @@
+//==============================================================================
+// EXEMPLO 1: TESTE COMPLETO DE STRESS DO IFSCee
+//==============================================================================
+// Este exemplo testa múltiplas funcionalidades do interpretador
+//
+// COMO USAR:
+// 1. Copie todo o código do EXEMPLO 1 para o editor
+// 2. Clique em "Preparar Execução"
+// 3. Use Play ou Próximo para ver a execução passo a passo
+//==============================================================================
+
+#include <stdio.h>
+
+// 1. TESTE: Função Recursiva (Testa a Pilha de Chamadas e o 'if/else')
+int fatorial(int n) {
+    if (n <= 1) {
+        return 1;
+    } else {
+        return n * fatorial(n - 1); // Chamada recursiva!
+    }
+}
+
+// 2. TESTE: Manipulação por Referência (Ponteiros como parâmetros)
+int dobrar_valor(int* ptr) {
+    *ptr = *ptr * 2; // Desreferenciação e modificação
+    return *ptr;
+}
+
+int main() {
+    // 3. TESTE: Strings Literais (Área RODATA)
+    char* titulo = "=== TESTE DE STRESS IFSCee ===";
+    printf(titulo);
+    printf("\n");
+
+    // 4. TESTE: Recursão na Prática
+    int fat = fatorial(4); // Vai empilhar até n=1 e retornar 24
+    printf("Fatorial de 4 (esperado 24): ");
+    printf("%d", fat);
+    printf("\n");
+
+    // 5. TESTE: For Loop, Arrays e Atribuição Composta (+=)
+    int numeros[3];
+    int soma = 0;
+    for (int i = 0; i < 3; i++) {
+        numeros[i] = i + 5; // Preenche com 5, 6 e 7
+        soma += numeros[i]; // Somatório: 5+6+7 = 18
+    }
+    printf("Soma do Array (esperado 18): ");
+    printf("%d", soma);
+    printf("\n");
+
+    // 6. TESTE: Operador Endereço de (&)
+    int alvo = 10;
+    int resultado_dobro = dobrar_valor(&alvo);
+    printf("Dobro por referencia (esperado 20): ");
+    printf("%d", alvo); // Imprime 20, provando que a função alterou a Stack do main!
+    printf("\n");
+
+    // 7. TESTE: While, Continue, Break e Lógica (|| e &&)
+    int contador = 0;
+    while (contador < 10) {
+        contador++; // Operador sufixo testado!
+
+        // Curto-circuito OR
+        if (contador == 2 || contador == 3) {
+            continue; // Ignora o resto e volta para o topo do while
+        }
+
+        // Curto-circuito AND
+        if (contador == 5 && alvo == 20) {
+            break; // Estoura o laço imediatamente
+        }
+    }
+    printf("Contador parou no Break (esperado 5): ");
+    printf("%d", contador);
+    printf("\n");
+
+    // 8. TESTE: Do-While e Decremento (--)
+    int dw = 3;
+    do {
+        dw--;
+    } while (dw > 0);
+    printf("Do-While final (esperado 0): ");
+    printf("%d", dw);
+    printf("\n");
+
+    // 9. TESTE: Malloc, Heap e Operador Lógico (!)
+    int* dinamico = malloc(8); // Aloca 8 bytes (2 ints)
+    dinamico[0] = 77; // Acesso a Heap via notação de array
+    dinamico[1] = 88;
+
+    if (!0) { // !0 é o mesmo que VERDADEIRO em C
+        printf("Primeiro bloco do Heap (esperado 77): ");
+        printf("%d", *dinamico); // *dinamico é o mesmo que dinamico[0]
+        printf("\n");
+    }
+
+    free(dinamico); // Libera o bloco do Heap
+
+    printf("=== FIM DOS TESTES ===\n");
+    return 0; // Finaliza com Exit Code 0
+}
+
+
+//==============================================================================
+// EXEMPLO 2: FUNÇÕES DEFINIDAS PELO USUÁRIO
+//==============================================================================
+// Este exemplo demonstra:
+// - Funções customizadas
+// - For loop com init, condition, increment
+// - Operadores compostos (+=)
+// - Lógica booleana (&& e !=)
+//
+// RESULTADOS ESPERADOS:
+// - total = 12 (calcular(1,2) + calcular(2,2) + calcular(3,2))
+// - Imprime "Sucesso!" pois 12 > 10 e 12 != 0
+//==============================================================================
+/*
+#include <stdio.h>
+
+// Função definida pelo usuário!
+int calcular(int a, int b) {
+    return a * b;
+}
+
+int main() {
+    int total = 0;
+
+    // Teste do laço FOR e operadores compostos
+    for (int i = 1; i <= 3; i++) {
+        total += calcular(i, 2);
+    }
+
+    printf("Total: ");
+    printf("%d", total);
+    printf("\n");
+
+    if (total > 10 && total != 0) {
+        printf("Sucesso!");
+        printf("\n");
+    }
+
+    return 0;
+}
+*/
+
+
+//==============================================================================
+// EXEMPLO 3: ARRAYS E PONTEIROS
+//==============================================================================
+// Demonstra manipulação avançada de arrays e ponteiros
+//==============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    // Array bidimensional (matriz)
+    int matriz[2][3];
+
+    // Preenche a matriz
+    matriz[0][0] = 10;
+    matriz[0][1] = 20;
+    matriz[0][2] = 30;
+    matriz[1][0] = 40;
+    matriz[1][1] = 50;
+    matriz[1][2] = 60;
+
+    // Imprime valores
+    printf("Matriz[0][0] = ");
+    printf("%d", matriz[0][0]);
+    printf("\n");
+
+    printf("Matriz[1][2] = ");
+    printf("%d", matriz[1][2]);
+    printf("\n");
+
+    // Teste de ponteiros
+    int valor = 100;
+    int* ptr = &valor;
+
+    printf("Valor original: ");
+    printf("%d", valor);
+    printf("\n");
+
+    *ptr = 200;
+
+    printf("Valor modificado via ponteiro: ");
+    printf("%d", valor);
+    printf("\n");
+
+    return 0;
+}
+*/
+
+
+//==============================================================================
+// EXEMPLO 4: TODOS OS TIPOS DE LOOPS
+//==============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    printf("=== TESTE DE LOOPS ===\n");
+
+    // 1. For Loop
+    printf("For loop (0 a 4):\n");
+    for (int i = 0; i < 5; i++) {
+        printf("%d ", i);
+    }
+    printf("\n");
+
+    // 2. While Loop
+    printf("While loop (5 a 1):\n");
+    int j = 5;
+    while (j > 0) {
+        printf("%d ", j);
+        j--;
+    }
+    printf("\n");
+
+    // 3. Do-While Loop
+    printf("Do-while loop (3 a 1):\n");
+    int k = 3;
+    do {
+        printf("%d ", k);
+        k--;
+    } while (k > 0);
+    printf("\n");
+
+    // 4. Break e Continue
+    printf("For com break no 7:\n");
+    for (int m = 0; m < 10; m++) {
+        if (m == 7) break;
+        printf("%d ", m);
+    }
+    printf("\n");
+
+    printf("For com continue no 3:\n");
+    for (int n = 0; n < 6; n++) {
+        if (n == 3) continue;
+        printf("%d ", n);
+    }
+    printf("\n");
+
+    return 0;
+}
+*/
+
+
+//==============================================================================
+// EXEMPLO 5: ALOCAÇÃO DINÂMICA (HEAP)
+//==============================================================================
+/*
+#include <stdio.h>
+
+int main() {
+    printf("=== TESTE DE HEAP ===\n");
+
+    // Aloca array dinâmico
+    int* nums = malloc(20); // 5 inteiros * 4 bytes = 20 bytes
+
+    // Preenche
+    nums[0] = 100;
+    nums[1] = 200;
+    nums[2] = 300;
+    nums[3] = 400;
+    nums[4] = 500;
+
+    // Imprime
+    printf("Array dinamico:\n");
+    for (int i = 0; i < 5; i++) {
+        printf("nums[%d] = %d\n", i, nums[i]);
+    }
+
+    // Libera memória
+    free(nums);
+
+    printf("Memoria liberada!\n");
+
+    return 0;
+}
+*/
