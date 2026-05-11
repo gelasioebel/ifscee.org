@@ -1,53 +1,121 @@
-
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages and Oracle Cloud OpenBSD server
+name: Test and Deploy
 
 on:
-  # Runs on pushes targeting the default branch
   push:
     branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
+  pull_request:
+    branches: ["main"]
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
-  group: "pages"
+  group: "deploy-${{ github.ref }}"
   cancel-in-progress: false
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install gcc
+        run: sudo apt-get update -y && sudo apt-get install -y gcc
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+  stage:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      staged: ${{ steps.stage.outputs.staged }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Stage deployable files
+        id: stage
+        run: |
+          mkdir -p staging
+          rsync -a \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='.idea/' \
+            --exclude='.claude/' \
+            --exclude='ifscee001/' \
+            --exclude='ifscee2/' \
+            --exclude='node_modules/' \
+            --exclude='tests/' \
+            --exclude='staging/' \
+            --exclude='package*.json' \
+            --exclude='package-lock.json' \
+            --exclude='vitest.config.js' \
+            --exclude='.gitignore' \
+            --exclude='.DS_Store' \
+            --exclude='README*.md' \
+            ./ staging/
+          echo "Staged contents:"
+          find staging -maxdepth 2 -type f -o -type d | sort
+          echo "staged=true" >> "$GITHUB_OUTPUT"
+
+      - name: Upload staging artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging
+          path: staging/
+          retention-days: 1
+
+  deploy-pages:
+    needs: stage
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download staging artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: staging
+          path: staging
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Upload artifact
+
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          path: ./staging
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
   deploy-server:
+    needs: stage
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Download staging artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: staging
+          path: staging
 
       - name: Deploy via SCP
         run: |
@@ -60,6 +128,21 @@ jobs:
           echo 'echo "$SSH_PASSPHRASE"' >> /tmp/askpass.sh
           chmod +x /tmp/askpass.sh
           SSH_ASKPASS=/tmp/askpass.sh SSH_ASKPASS_REQUIRE=force SSH_PASSPHRASE="${{ secrets.SSH_PASSPHRASE }}" ssh-add ~/.ssh/id_deploy
-          scp -r ./* root@167.234.233.215:/var/www/htdocs/ifscee/
+          scp -r staging/* root@167.234.233.215:/var/www/htdocs/ifscee/
           rm -f /tmp/askpass.sh
           ssh-agent -k
+
+      - name: Smoke test live site
+        run: |
+          sleep 5
+          for i in 1 2 3; do
+            code=$(curl -fsS -o /dev/null -w "%{http_code}" "https://ifscee.org/ifscee/" || echo "000")
+            if [ "$code" = "200" ]; then
+              echo "Smoke test passed (HTTP $code)"
+              exit 0
+            fi
+            echo "Attempt $i: HTTP $code; retrying in 5s..."
+            sleep 5
+          done
+          echo "Smoke test failed after 3 attempts."
+          exit 1

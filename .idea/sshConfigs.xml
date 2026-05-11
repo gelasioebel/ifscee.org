@@ -2,7 +2,7 @@
 <project version="4">
   <component name="SshConfigs">
     <configs>
-      <sshConfig host="167.234.233.215" id="b52cf3ce-5060-4015-b651-026456911254" keyPath="$USER_HOME$/.ssh/id_ed25519" port="22" nameFormat="DESCRIPTIVE" username="root" useOpenSSHConfig="true" />
+      <sshConfig host="admin.ifscee.org" id="37d3eb30-8dcb-4863-991a-99a5f96a2b8f" keyPath="$USER_HOME$/.ssh/id_ed25519" port="22" nameFormat="DESCRIPTIVE" username="gelasioe" useOpenSSHConfig="true" />
     </configs>
   </component>
 </project>

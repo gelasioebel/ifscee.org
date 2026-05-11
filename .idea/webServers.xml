@@ -3,7 +3,7 @@
   <component name="WebServers">
     <option name="servers">
       <webServer id="3d433d90-bb00-4670-9c6f-4e6c724767ff" name="OpenBSD Server Oracle Cloud" url="https://ifscee.org">
-        <fileTransfer rootFolder="/var/www/htdocs" accessType="SFTP" host="167.234.233.215" port="22" sshConfigId="b52cf3ce-5060-4015-b651-026456911254" sshConfig="root@167.234.233.215:22 key" keyPair="true">
+        <fileTransfer rootFolder="/var/www/htdocs" accessType="SFTP" host="admin.ifscee.org" port="22" sshConfigId="37d3eb30-8dcb-4863-991a-99a5f96a2b8f" sshConfig="gelasioe@admin.ifscee.org:22 key" keyPair="true">
           <advancedOptions>
             <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
           </advancedOptions>

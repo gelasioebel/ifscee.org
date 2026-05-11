@@ -731,3 +731,8 @@ class IFSCeeLexer {
         return { type: TokenType.OPERATOR, value: char, line: startLine, column: startColumn };
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { IFSCeeLexer, TokenType };
+}
+

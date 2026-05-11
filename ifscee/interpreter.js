@@ -1555,3 +1555,8 @@ class IFSCeeInterpreter {
         return node.value;
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { IFSCeeInterpreter };
+}
+

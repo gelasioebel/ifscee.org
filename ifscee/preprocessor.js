@@ -73,3 +73,7 @@ class IFSCeePreprocessor {
         return processedLines.join('\n');
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { IFSCeePreprocessor };
+}

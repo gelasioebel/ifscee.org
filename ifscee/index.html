@@ -3,86 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IFSCee - Interpretador Visual de C</title>
+    <title>IFSCee — Interpretador Visual de C</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('ifscee-theme');
+                if (t !== 'dark' && t !== 'light') {
+                    t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+                }
+                document.documentElement.dataset.theme = t;
+            } catch (e) { document.documentElement.dataset.theme = 'light'; }
+        })();
+    </script>
 </head>
 <body>
 
-<header>
-    <h1>IFSCee: Visualizador de Código C</h1>
-    <div class="controls">
-        <button id="btn-prepare" title="Atalho: Ctrl + Enter">Preparar Execução</button>
-        <button id="btn-edit" style="display: none;" title="Atalho: Esc">Voltar para Edição</button>
-        <span class="divider">|</span>
-        <button id="btn-first" disabled title="Atalho: Home">&lt;&lt; Primeiro</button>
-        <button id="btn-prev" disabled title="Atalho: Seta Esquerda (←)">&lt; Anterior</button>
-        <button id="btn-play" disabled title="Atalho: Espaço">▶ Play</button>
-        <button id="btn-next" disabled title="Atalho: Seta Direita (→)">Próximo &gt;</button>
-        <button id="btn-last" disabled title="Atalho: End">Último &gt;&gt;</button>
-        <span class="divider">|</span>
-        <label for="speed-control" style="font-size: 0.9em;">Velocidade:</label>
-        <input type="range" id="speed-control" min="1" max="10" value="5" disabled title="Ajustar velocidade de execução automática">
-        <span id="speed-display" style="font-size: 0.9em; min-width: 30px;">5x</span>
-        <span class="divider">|</span>
-        <button id="btn-toggle-ast" style="display: none;" title="Mostrar/Ocultar AST">🌳 AST</button>
+<header class="app-header">
+    <div class="app-header__brand">
+        <span class="brand-mark">IF</span>
+        <div class="brand-text">
+            <h1 class="brand-title">IFSCee</h1>
+            <span class="brand-sub">Interpretador C99</span>
+        </div>
+    </div>
+
+    <div class="toolbar" role="toolbar" aria-label="Controles de execução">
+        <button id="btn-prepare" class="btn btn--primary" title="Atalho: Ctrl + Enter">▶ Preparar Execução</button>
+        <button id="btn-edit" class="btn" style="display: none;" title="Atalho: Esc">✎ Voltar para Edição</button>
+        <span class="toolbar__sep" aria-hidden="true"></span>
+        <button id="btn-first" class="btn btn--icon" disabled title="Primeiro (Home)">⏮</button>
+        <button id="btn-prev"  class="btn btn--icon" disabled title="Anterior (←)">◀</button>
+        <button id="btn-play"  class="btn btn--icon" disabled title="Play (Espaço)">▶</button>
+        <button id="btn-next"  class="btn btn--icon" disabled title="Próximo (→)">⏵</button>
+        <button id="btn-last"  class="btn btn--icon" disabled title="Último (End)">⏭</button>
+        <span class="toolbar__sep" aria-hidden="true"></span>
+        <label for="speed-control" class="toolbar__label">Velocidade</label>
+        <input type="range" id="speed-control" min="1" max="10" value="5" disabled>
+        <span id="speed-display" class="toolbar__hint">5x</span>
+        <span class="toolbar__sep" aria-hidden="true"></span>
+        <button id="btn-toggle-ast" class="btn btn--ghost" style="display: none;" title="Mostrar/Ocultar AST">🌳 AST</button>
+    </div>
+
+    <div class="app-header__actions">
+        <button id="btn-theme" class="btn btn--icon" title="Alternar tema" aria-label="Alternar tema">🌙</button>
     </div>
 </header>
 
-<div class="main-container">
-    <div class="panel code-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 style="margin: 0;">Código Fonte</h3>
-            <div>
-                <select id="examples-dropdown" style="padding: 4px 12px; font-size: 0.85em; margin-right: 5px;" title="Carregar exemplo">
-                    <option value="">📚 Carregar Exemplo...</option>
-                    <optgroup label="Básicos">
-                        <option value="basic-1">1. Hello World</option>
-                        <option value="basic-2">2. Variáveis e Tipos</option>
-                        <option value="basic-3">3. Operações Aritméticas</option>
-                        <option value="basic-4">4. If-Else</option>
-                        <option value="basic-5">5. For Loop</option>
-                        <option value="basic-6">6. While Loop</option>
-                        <option value="basic-7">7. Arrays</option>
-                        <option value="basic-8">8. Funções</option>
-                        <option value="basic-9">9. Ponteiros</option>
-                        <option value="basic-10">10. Malloc</option>
-                    </optgroup>
-                    <optgroup label="🏗️ Structs">
-                        <option value="struct-1">1. Struct Básica</option>
-                        <option value="struct-2">2. Typedef + Funções</option>
-                        <option value="struct-3">3. Ponteiro para Struct (->)</option>
-                        <option value="struct-4">4. Struct como Parâmetro</option>
-                        <option value="struct-5">5. Números Complexos</option>
-                    </optgroup>
-                    <optgroup label="📺 stdio.h Avançado">
-                        <option value="stdio-1">1. Printf Completo (width, precision, flags)</option>
-                        <option value="stdio-2">2. puts, putchar</option>
-                    </optgroup>
-                    <optgroup label="🧰 stdlib.h">
-                        <option value="stdlib-1">1. calloc vs malloc</option>
-                        <option value="stdlib-2">2. rand, srand, abs, atoi</option>
-                    </optgroup>
-                    <optgroup label="📝 string.h">
-                        <option value="string-1">1. strlen, strcpy, strcat, strcmp</option>
-                    </optgroup>
-                    <optgroup label="🔀 Controle de Fluxo">
-                        <option value="switch-1">1. Switch/Case</option>
-                        <option value="ternary-1">2. Operador Ternário (?:)</option>
-                    </optgroup>
-                    <optgroup label="⚡ Operadores">
-                        <option value="bitwise-1">1. Operadores Bitwise</option>
-                    </optgroup>
-                    <optgroup label="Escape Sequences">
-                        <option value="escape-1">1. Basic Escapes (\n, \t, \\, \")</option>
-                        <option value="escape-7">2. Bases Numéricas (Oct/Hex/Bin)</option>
-                    </optgroup>
-                </select>
-                <button id="btn-export-ast" style="display: none; padding: 4px 12px; font-size: 0.85em;" title="Exportar AST como JSON">📥 Export AST</button>
-            </div>
+<main class="layout">
+
+    <aside class="panel panel--files" aria-label="Arquivos">
+        <header class="panel__head">
+            <h2 class="panel__title">Arquivos</h2>
+            <button id="btn-new-file" class="btn btn--icon btn--xs" disabled title="Em breve">＋</button>
+        </header>
+        <div class="panel__body">
+            <ul id="file-list" class="file-list">
+                <li class="file-list__empty">Nenhum arquivo salvo</li>
+            </ul>
         </div>
+    </aside>
+
+    <section class="panel panel--editor">
+        <header class="panel__head">
+            <h2 class="panel__title">Código Fonte</h2>
+            <div class="panel__actions">
+                <button id="btn-save-as" class="btn btn--ghost btn--sm" title="Salvar arquivo no navegador">💾 Salvar como</button>
+                <button id="btn-open-examples" class="btn btn--ghost btn--sm">📚 Exemplos</button>
+                <button id="btn-export-ast" class="btn btn--ghost btn--sm" style="display: none;" title="Exportar AST como JSON">📥 AST</button>
+            </div>
+        </header>
         <div class="code-container">
-                <textarea id="code-editor" spellcheck="false">
-#include <stdio.h>
+            <textarea id="code-editor" spellcheck="false">
+#include &lt;stdio.h&gt;
 
 typedef struct {
     int x;
@@ -112,50 +105,157 @@ int main() {
 
     return 0;
 }
-                </textarea>
+            </textarea>
             <div id="code-execution-view" style="display: none;"></div>
         </div>
-    </div>
+    </section>
 
-    <div class="panel-group">
-        <div class="panel ast-panel" id="ast-panel" style="display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h3 style="margin: 0;">Abstract Syntax Tree (AST)</h3>
-                <div>
-                    <button id="btn-expand-all" style="padding: 4px 12px; font-size: 0.85em; margin-right: 5px;">Expandir Tudo</button>
-                    <button id="btn-collapse-all" style="padding: 4px 12px; font-size: 0.85em;">Colapsar Tudo</button>
+    <section class="panel-stack">
+        <section class="panel panel--ast" id="ast-panel" style="display: none;">
+            <header class="panel__head">
+                <h2 class="panel__title">Abstract Syntax Tree</h2>
+                <div class="panel__actions">
+                    <button id="btn-expand-all"  class="btn btn--ghost btn--xs">Expandir</button>
+                    <button id="btn-collapse-all" class="btn btn--ghost btn--xs">Colapsar</button>
                 </div>
-            </div>
-            <div id="ast-visualizer" class="ast-container">
+            </header>
+            <div id="ast-visualizer" class="panel__body ast-container">
                 <p class="empty-msg">A AST será exibida após preparar a execução</p>
             </div>
-        </div>
+        </section>
 
-        <div class="panel memory-panel">
-            <h3>Estado da Memória RAM (Stack, Heap, Data)</h3>
-            <div id="memory-visualizer" class="memory-container">
+        <section class="panel panel--memory">
+            <header class="panel__head">
+                <h2 class="panel__title">Memória RAM (Stack · Heap · Data)</h2>
+            </header>
+            <div id="memory-visualizer" class="panel__body memory-container">
                 <p class="empty-msg">Aguardando execução...</p>
             </div>
-        </div>
+        </section>
 
-        <div class="panel watch-panel">
-            <h3>Variáveis Observadas</h3>
-            <div id="watch-panel" class="watch-container">
+        <section class="panel panel--watch">
+            <header class="panel__head">
+                <h2 class="panel__title">Variáveis Observadas</h2>
+            </header>
+            <div id="watch-panel" class="panel__body watch-container">
                 <p class="empty-msg">Clique direito em uma variável para observá-la</p>
             </div>
-        </div>
+        </section>
 
-        <div class="panel output-panel">
-            <h3>Saída do Programa (Terminal)</h3>
-            <div id="output-panel" class="terminal-output"></div>
-        </div>
+        <section class="panel panel--output">
+            <header class="panel__head">
+                <h2 class="panel__title">Saída do Programa</h2>
+            </header>
+            <div id="output-panel" class="panel__body terminal-output"></div>
+        </section>
+    </section>
+</main>
+
+<!-- Compat: mantido oculto para o handler legado em ui-controller.js -->
+<select id="examples-dropdown" hidden aria-hidden="true">
+    <option value=""></option>
+    <option value="basic-1">1. Hello World</option>
+    <option value="basic-2">2. Variáveis e Tipos</option>
+    <option value="basic-3">3. Operações Aritméticas</option>
+    <option value="basic-4">4. If-Else</option>
+    <option value="basic-5">5. For Loop</option>
+    <option value="basic-6">6. While Loop</option>
+    <option value="basic-7">7. Arrays</option>
+    <option value="basic-8">8. Funções</option>
+    <option value="basic-9">9. Ponteiros</option>
+    <option value="basic-10">10. Malloc</option>
+    <option value="struct-1">Struct Básica</option>
+    <option value="struct-2">Typedef + Funções</option>
+    <option value="struct-3">Ponteiro para Struct</option>
+    <option value="struct-4">Struct como Parâmetro</option>
+    <option value="struct-5">Números Complexos</option>
+    <option value="stdio-1">Printf Completo</option>
+    <option value="stdio-2">puts, putchar</option>
+    <option value="stdlib-1">calloc vs malloc</option>
+    <option value="stdlib-2">rand, srand, abs, atoi</option>
+    <option value="string-1">strlen, strcpy, strcat, strcmp</option>
+    <option value="switch-1">Switch/Case</option>
+    <option value="ternary-1">Operador Ternário</option>
+    <option value="bitwise-1">Operadores Bitwise</option>
+    <option value="escape-1">Basic Escapes</option>
+    <option value="escape-7">Bases Numéricas</option>
+</select>
+
+<dialog id="modal-exemplos" class="modal" aria-label="Carregar Exemplo">
+    <header class="modal__head">
+        <h2 class="modal__title">Carregar Exemplo</h2>
+        <button class="btn btn--icon btn--xs" data-close-modal aria-label="Fechar">✕</button>
+    </header>
+    <div class="modal__body">
+        <section class="example-group">
+            <h3 class="example-group__title">Básicos</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="basic-1"><strong>Hello World</strong><span>printf, string literal</span></button>
+                <button class="example-card" data-exemplo="basic-2"><strong>Variáveis e Tipos</strong><span>int, float, char</span></button>
+                <button class="example-card" data-exemplo="basic-3"><strong>Aritmética</strong><span>+ − × ÷ %</span></button>
+                <button class="example-card" data-exemplo="basic-4"><strong>If-Else</strong><span>condicionais</span></button>
+                <button class="example-card" data-exemplo="basic-5"><strong>For Loop</strong><span>iteração</span></button>
+                <button class="example-card" data-exemplo="basic-6"><strong>While Loop</strong><span>contagem regressiva</span></button>
+                <button class="example-card" data-exemplo="basic-7"><strong>Arrays</strong><span>declaração e índices</span></button>
+                <button class="example-card" data-exemplo="basic-8"><strong>Funções</strong><span>definição e retorno</span></button>
+                <button class="example-card" data-exemplo="basic-9"><strong>Ponteiros</strong><span>&amp; e *</span></button>
+                <button class="example-card" data-exemplo="basic-10"><strong>Malloc</strong><span>alocação dinâmica</span></button>
+            </div>
+        </section>
+
+        <section class="example-group">
+            <h3 class="example-group__title">Structs</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="struct-1"><strong>Struct Básica</strong></button>
+                <button class="example-card" data-exemplo="struct-2"><strong>Typedef + Funções</strong></button>
+                <button class="example-card" data-exemplo="struct-3"><strong>Ponteiro para Struct</strong><span>operador -&gt;</span></button>
+                <button class="example-card" data-exemplo="struct-4"><strong>Struct como Parâmetro</strong></button>
+                <button class="example-card" data-exemplo="struct-5"><strong>Números Complexos</strong></button>
+            </div>
+        </section>
+
+        <section class="example-group">
+            <h3 class="example-group__title">stdio.h</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="stdio-1"><strong>Printf Completo</strong><span>width, precision, flags</span></button>
+                <button class="example-card" data-exemplo="stdio-2"><strong>puts, putchar</strong></button>
+            </div>
+        </section>
+
+        <section class="example-group">
+            <h3 class="example-group__title">stdlib.h &amp; string.h</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="stdlib-1"><strong>calloc vs malloc</strong></button>
+                <button class="example-card" data-exemplo="stdlib-2"><strong>rand, srand, abs, atoi</strong></button>
+                <button class="example-card" data-exemplo="string-1"><strong>strlen, strcpy, strcat, strcmp</strong></button>
+            </div>
+        </section>
+
+        <section class="example-group">
+            <h3 class="example-group__title">Controle de Fluxo &amp; Operadores</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="switch-1"><strong>Switch/Case</strong></button>
+                <button class="example-card" data-exemplo="ternary-1"><strong>Operador Ternário</strong><span>?:</span></button>
+                <button class="example-card" data-exemplo="bitwise-1"><strong>Bitwise</strong><span>&amp; | ^ ~ &lt;&lt; &gt;&gt;</span></button>
+            </div>
+        </section>
+
+        <section class="example-group">
+            <h3 class="example-group__title">Escape Sequences</h3>
+            <div class="example-grid">
+                <button class="example-card" data-exemplo="escape-1"><strong>Basic Escapes</strong><span>\n \t \\ \"</span></button>
+                <button class="example-card" data-exemplo="escape-7"><strong>Bases Numéricas</strong><span>oct, hex, bin</span></button>
+            </div>
+        </section>
     </div>
-</div>
+</dialog>
 
 <script src="preprocessor.js"></script>
 <script src="lexer.js"></script>
 <script src="parser.js"></script>
 <script src="interpreter.js"></script>
 <script src="ui-controller.js"></script>
+<script src="storage.js"></script>
+<script src="chrome.js"></script>
 </body>
 </html>

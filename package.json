@@ -1,0 +1,12 @@
+{
+  "name": "ifscee",
+  "private": true,
+  "version": "0.1.0",
+  "description": "IFSCee - Interpretador visual de C99 no navegador",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0"
+  }
+}

@@ -834,3 +834,8 @@ class IFSCeeParser {
         throw new Error(`[Linha ${consumedToken.line}] Expressão inválida iniciada com '${consumedToken.value}'.`);
     }
 }
+
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { IFSCeeParser };
+}
+
