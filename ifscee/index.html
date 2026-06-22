@@ -29,6 +29,7 @@
     </div>
 
     <div class="toolbar" role="toolbar" aria-label="Controles de execução">
+		<button id="btn-manual" class="btn" title="Abrir manual do usuário">📖 Manual</button>
         <button id="btn-prepare" class="btn btn--primary" title="Atalho: Ctrl + Enter">▶ Preparar Execução</button>
         <button id="btn-edit" class="btn" style="display: none;" title="Atalho: Esc">✎ Voltar para Edição</button>
         <span class="toolbar__sep" aria-hidden="true"></span>
@@ -247,6 +248,15 @@ int main() {
                 <button class="example-card" data-exemplo="escape-7"><strong>Bases Numéricas</strong><span>oct, hex, bin</span></button>
             </div>
         </section>
+    </div>
+</dialog>
+<dialog id="modal-manual" class="modal modal--manual" aria-label="Manual do Usuário">
+    <header class="modal__head">
+        <h2 class="modal__title">Manual do Usuário</h2>
+        <button class="btn btn--icon btn--xs" data-close-manual aria-label="Fechar">✕</button>
+    </header>
+    <div class="modal__body modal__body--manual">
+        <iframe id="manual-frame" title="Manual do Usuário" loading="lazy"></iframe>
     </div>
 </dialog>
 

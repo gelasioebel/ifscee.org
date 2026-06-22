@@ -179,6 +179,31 @@
             }
         });
     }
+	
 
     refresh();
+})();
+
+(function () {
+    const dialog = document.getElementById('modal-manual');
+    const opener = document.getElementById('btn-manual');
+    const frame = document.getElementById('manual-frame');
+    if (!dialog || !opener) return;
+
+    let jaCarregou = false;
+
+    opener.addEventListener('click', () => {
+        if (frame && !jaCarregou) {
+            frame.setAttribute('src', 'manual.html');
+            jaCarregou = true;
+        }
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+    });
+
+    dialog.addEventListener('click', (event) => {
+        if (event.target.matches('[data-close-manual]') || event.target === dialog) {
+            dialog.close();
+        }
+    });
 })();
